@@ -18,6 +18,8 @@ export class ShadingActor {
     // constructor with ip, username, password
     private instance: Axios
     private devices: Device[] = []
+    private username?: string
+    private password?: string
 
     constructor(ip: string) {
         // this.ip = ip;
@@ -33,9 +35,19 @@ export class ShadingActor {
     }
 
     public login = async (username: string, password: string) => {
+        this.username = username
+        this.password = password
+        await this.updateToken()
+    }
+
+    public updateToken = async () => {
+        if (!this.username || !this.password) {
+            throw new Error("Username or password not set")
+        }
+
         let response = await this.instance.post("/login", JSON.stringify({
-            "user": username,
-            "password": password
+            "user": this.username,
+            "password": this.password
         }), {
             headers: {
                 "Content-Type": "application/json",
