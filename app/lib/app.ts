@@ -3,10 +3,7 @@ import cron from "node-cron"
 import { getAppConfig } from "./config/config"
 import { initActor, ShadingActor } from "./eltako/api/eltako-api"
 import { log } from "./logger"
-// import { login, needsRefresh } from "./miele/login/login"
-// import { smallMessage } from "./miele/miele"
-// import { startSSE } from "./miele/sse-client"
-import { connectMqtt, publish } from "./mqtt/mqtt-client"
+import { connectMqtt, getMqttClient, publish, subscribe } from "./mqtt/mqtt-client"
 
 export const triggerFullUpdate = async () => {
     // if (needsRefresh()) {
@@ -24,23 +21,33 @@ let eventSource: EventSource
 
 const actors: ShadingActor[] = []
 
+export const getActors = () => actors
+
 const start = async () => {
     const config = getAppConfig()
 
     for (const device of config.eltako.devices) {
-        actors.push(await initActor(device.ip, device.username, device.password))
+        const actor = await initActor(device.ip, device.username, device.password)
+        log.debug("Actor initialized", actor.getDisplayName())
+        actors.push(actor)
     }
 
     const polling = config.eltako["polling-interval"] ?? 10_000
     for (const actor of actors) {
         setInterval(async () => {
             log.debug("Polling actor", actor.getDisplayName())
-            const position = await actor.getPosition()
-            const displayName = actor.getDisplayName()
-            log.debug("Polling result", { position, displayName })
-            publish({ position }, displayName)
+            try {
+                const position = await actor.getPosition()
+                const displayName = actor.getDisplayName()
+                log.debug("Polling result", { position, displayName })
+                publish({ position }, displayName)
+            }
+            catch (e) {
+                log.error("Failed to poll actor", actor.getDisplayName(), e)
+            }
         }, polling)
     }
+
 
     // const token = await (login())
     //

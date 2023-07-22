@@ -30,22 +30,6 @@ export class ShadingActor {
             },
             httpsAgent: ignoringCertsAgent
         })
-
-        // let data = JSON.stringify({
-        //     "user": username,
-        //     "password": password
-        // });
-        //
-        // let config = {
-        //     url: `https://${ip}:443/api/v0/login`,
-        //     headers: {
-        //         "Content-Type": "application/json",
-        //     },
-        //     data: data,
-        //     httpsAgent: new https.Agent({
-        //         rejectUnauthorized: false
-        //     })
-        // }
     }
 
     public login = async (username: string, password: string) => {
@@ -96,40 +80,69 @@ export class ShadingActor {
     }
 
     public setPosition = async (pos: number, device: Device = this.findDeviceByFunction(targetPosition)) => {
-        log.info(`Setting position of device ${device.displayName} to ${pos}`)
-        let response = await this.instance.put( `/devices/${device.deviceGuid}/functions/${targetPosition}`, JSON.stringify(
-            {
-                "type": "number",
-                "identifier": targetPosition,
-                "value": pos
-            }
-        ), {
-            headers: {
-                "Content-Type": "application/json",
+        return await this.withRetry(async () => {
+            log.info(`Setting position of device ${device.displayName} to ${pos}`)
+            let response = await this.instance.put( `/devices/${device.deviceGuid}/functions/${targetPosition}`, JSON.stringify(
+                {
+                    "type": "number",
+                    "identifier": targetPosition,
+                    "value": pos
+                }
+            ), {
+                headers: {
+                    "Content-Type": "application/json",
+                }
+            })
+
+            if (response.status != 202) {
+                throw new Error(`Unexpected status code ${response.status}, expected 202. Response: ${response.data}`)
             }
         })
+    }
 
-        if (response.status != 202) {
-            throw new Error(`Unexpected status code ${response.status}, expected 202. Response: ${response.data}`)
+    private withRetry = async (func: () => Promise<any>) => {
+        let retryCount = 0
+        while (true) {
+            try {
+                return await func()
+            }
+            catch (e) {
+                if (retryCount > 3) {
+                    throw e
+                }
+                retryCount++
+                log.warn(`Error while executing function, retrying ${retryCount}`, e)
+                await sleep(1)
+            }
         }
     }
 
     public getPosition = async (device: Device = this.findDeviceByInfo(currentPosition)) => {
-        let response = await this.instance.get(`/devices/${device.deviceGuid}/infos/${currentPosition}`)
-        const data = JSON.parse(response.data)
-        return data.value
+        return await this.withRetry(async () => {
+            let response = await this.instance.get(`/devices/${device.deviceGuid}/infos/${currentPosition}`)
+            const data = JSON.parse(response.data)
+            return data.value
+        })
     }
+
+    waitJob = 0
 
     public waitForPosition = async (position: number, device: Device = this.findDeviceByInfo(currentPosition)) => {
         if (position < 0 || position > 100) {
             throw new Error(`Position ${position} is out of range`)
         }
 
+        const myWaitJob = ++this.waitJob
+
         log.debug(`Wait for position of device ${device.displayName} to ${position}`)
 
         const startTime = new Date().getTime()
         let p = await this.getPosition(device)
         while (p != position) {
+            if (myWaitJob !== this.waitJob) {
+                log.debug(`Wait for position of device ${device.displayName} to ${position} aborted`)
+                return
+            }
             log.trace(`Current position of device ${device.displayName} is ${p}, waiting for ${position}`)
             await sleep(1)
             p = await this.getPosition(device)

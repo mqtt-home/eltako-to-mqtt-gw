@@ -2,6 +2,7 @@ import mqtt from "mqtt"
 
 import { ConfigMqtt, getAppConfig } from "../config/config"
 import { log } from "../logger"
+import { putMessage } from "../put-handler"
 
 export type MqttInstance = {
     client: mqtt.MqttClient
@@ -93,6 +94,18 @@ export const connectMqtt: (() => Promise<() => void>) = async (config = getAppCo
     await subscribe(client, `${config.topic}/#`)
     online()
     log.info("MQTT subscription active")
+
+    client.on("message", async (topic, message) => {
+        const sliced = topic.slice(config.topic.length + 1)
+
+        // if (topic.endsWith("/get") || topic.endsWith("/state")) {
+        //     publishResource(resource)
+        // }
+        if (topic.endsWith("/set")) {
+            await putMessage(sliced, message)
+        }
+    })
+
     return client.end
 }
 
