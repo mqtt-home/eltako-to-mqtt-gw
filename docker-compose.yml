@@ -2,8 +2,8 @@ version: '2'
 
 services:
   huemqtt:
-    hostname: mielemqtt
-    image: pharndt/mielemqtt:${VERSION}
+    hostname: eltakomqtt
+    image: pharndt/eltakomqtt:${VERSION}
     build: .
     volumes:
       - ./production/config:/var/lib/miele-to-mqtt-gw:ro
