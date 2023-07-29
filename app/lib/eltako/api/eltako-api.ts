@@ -24,12 +24,12 @@ export class ShadingActor {
     public blindsHalfOpenPercentage: number = 3
     public name?: string
 
-    constructor (ip: string) {
+    constructor (hostname: string) {
         // this.ip = ip;
         // this.username = username;
         // this.password = password;
         this.instance = new Axios({
-            baseURL: `https://${ip}:443/api/v0`,
+            baseURL: `https://${hostname}:443/api/v0`,
             headers: {
                 "Content-Type": "application/json"
             },
@@ -56,6 +56,10 @@ export class ShadingActor {
                 "Content-Type": "application/json"
             }
         })
+
+        if (response.status !== 200) {
+            throw new Error(`Unexpected status code ${response.status}, expected 200. Response: ${response.data}`)
+        }
 
         const data = JSON.parse(response.data)
         this.instance.defaults.headers.common = {
