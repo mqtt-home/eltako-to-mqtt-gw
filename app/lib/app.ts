@@ -1,45 +1,22 @@
 import cron from "node-cron"
+import { getActors, registerActors } from "./actorRegistry"
 import { getAppConfig } from "./config/config"
-import { initActor, ShadingActor } from "./eltako/api/eltako-api"
 import { log } from "./logger"
-import { connectMqtt, publish } from "./mqtt/mqtt-client"
+import { connectMqtt } from "./mqtt/mqtt-client"
+import { registerPolling } from "./polling"
 
 export const triggerFullUpdate = async () => {
     log.debug("Triggering full update (token refresh)")
-    for (const actor of actors) {
+    for (const actor of getActors()) {
         await actor.updateToken()
     }
     log.debug("Full update (token refresh) done")
 }
 
-const actors: ShadingActor[] = []
-
-export const getActors = () => actors
-
 const start = async () => {
     const config = getAppConfig()
-
-    for (const device of config.eltako.devices) {
-        const actor = await initActor(device.ip, device.username, device.password)
-        log.info("Actor initialized", { ip: device.ip, name: actor.getDisplayName() })
-        actors.push(actor)
-    }
-
-    const polling = config.eltako["polling-interval"] ?? 10_000
-    for (const actor of actors) {
-        setInterval(async () => {
-            log.debug("Polling actor", actor.getDisplayName())
-            try {
-                const position = await actor.getPosition()
-                const displayName = actor.getDisplayName()
-                log.debug("Polling result", { position, displayName })
-                publish({ position }, displayName)
-            }
-            catch (e) {
-                log.error("Failed to poll actor", actor.getDisplayName(), e)
-            }
-        }, polling)
-    }
+    const actors = await registerActors(config.eltako)
+    registerPolling(actors, config.eltako["polling-interval"] ?? 10_000)
 }
 
 export const startApp = async () => {

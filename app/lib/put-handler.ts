@@ -1,4 +1,4 @@
-import { getActors } from "./app"
+import { getActors } from "./actorRegistry"
 import { log } from "./logger"
 
 type Position = {
@@ -19,29 +19,29 @@ const isAction = (obj: any): obj is Action => {
 
 export const putMessage = async (topic: string, message: Buffer) => {
     log.info("MQTT message received", { topic, message: message.toString() })
-    const msg = JSON.parse(message.toString())
-    const deviceName = topic.split("/")[0]
-    const actor = getActors().find(d => d.getDisplayName() === deviceName)
-    if (!actor) {
-        log.error("Cannot find actor", deviceName)
-        return
-    }
-
     try {
+        const msg = JSON.parse(message.toString())
+        const deviceName = topic.split("/")[0]
+        const actor = getActors().find(d => d.getDisplayName() === deviceName)
+        if (!actor) {
+            log.error("Cannot find actor", deviceName)
+            return
+        }
+
         if (isPosition(msg)) {
             await actor.setPosition(msg.position)
         }
         else if (isAction(msg)) {
             switch (msg.action) {
-                case "open":
-                    await actor.open()
-                    break
-                case "close":
-                    await actor.close()
-                    break
-                case "closeAndOpenBlinds":
-                    await actor.closeAndOpenBlinds()
-                    break
+            case "open":
+                await actor.open()
+                break
+            case "close":
+                await actor.close()
+                break
+            case "closeAndOpenBlinds":
+                await actor.closeAndOpenBlinds()
+                break
             }
         }
         else {
@@ -49,6 +49,6 @@ export const putMessage = async (topic: string, message: Buffer) => {
         }
     }
     catch (e) {
-        log.error("Error while handling MQTT message", e)
+        log.error("Error while processing MQTT message", e)
     }
 }

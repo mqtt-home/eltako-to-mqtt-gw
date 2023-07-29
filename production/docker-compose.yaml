@@ -1,12 +1,12 @@
 version: '2'
 
 services:
-    mielemqtt:
+    eltakomqtt:
         environment:
             TZ: "Europe/Berlin"
             LOGBACK_XML: /var/lib/miele-to-mqtt-gw/logback.xml
-        hostname: mielemqtt
-        image: pharndt/mielemqtt
+        hostname: eltakomqtt
+        image: pharndt/eltakomqtt
         volumes:
-            - ./config:/var/lib/miele-to-mqtt-gw:rw
+            - ./config:/var/lib/eltako-to-mqtt-gw:rw
         restart: always

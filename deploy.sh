@@ -1,2 +1,2 @@
 #!/bin/bash
-docker push pharndt/mielemqtt:latest
+docker push pharndt/eltakomqtt:latest
