@@ -50,7 +50,7 @@
         "axios": "1.4.0",
         "mqtt": "4.3.7",
         "node-cron": "3.0.2",
-        "winston": "3.9.0",
+        "winston": "3.10.0",
         "winston-transport": "4.5.0"
     }
 }
