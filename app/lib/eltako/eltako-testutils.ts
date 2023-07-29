@@ -12,7 +12,7 @@ const token = "FHQ7vnqEcjadnuwnojjkB7YIMiEAmwaxeKB32TX-9DH"
 export const localConfig: ConfigEltakoDevice = {
     ...credentials,
     ip: "192.168.0.200",
-    name: "living room",
+    name: "living-room",
     blindsConfig: {
         halfOpenPercentage: 2
     }

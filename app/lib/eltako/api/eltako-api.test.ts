@@ -1,5 +1,6 @@
+import { registerActors } from "../../actorRegistry"
 import { localConfig, server } from "../eltako-testutils"
-import { initActor } from "./eltako-api"
+import { initActor, ShadingActor } from "./eltako-api"
 
 describe("eltako-api", () => {
     beforeAll(() => server.listen())
@@ -7,7 +8,19 @@ describe("eltako-api", () => {
 
     test("Login", async () => {
         const actor = await initActor(localConfig)
-        expect(actor.getDisplayName()).toBe("living room")
+        expect(actor.getDisplayName()).toBe("living-room")
+    })
+
+    test("Missing username", async () => {
+        const actor = new ShadingActor("192.168.0.1")
+        await expect(async () => await actor.login(null as any, "password"))
+            .rejects.toThrow()
+    })
+
+    test("Missing password", async () => {
+        const actor = new ShadingActor("192.168.0.1")
+        await expect(async () => await actor.login("username", null as any))
+            .rejects.toThrow()
     })
 
     test("Invalid password", async () => {
@@ -53,5 +66,12 @@ describe("eltako-api", () => {
 
         await expect(async () => await actor.waitForPosition(-1))
             .rejects.toThrow()
+    })
+
+    test("Register Actors", async () => {
+        const registry = await registerActors({
+            devices: [localConfig]
+        })
+        expect(registry.length).toBe(1)
     })
 })

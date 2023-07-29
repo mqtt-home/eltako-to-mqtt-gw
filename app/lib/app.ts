@@ -16,7 +16,7 @@ export const triggerFullUpdate = async () => {
 const start = async () => {
     const config = getAppConfig()
     const actors = await registerActors(config.eltako)
-    registerPolling(actors, config.eltako)
+    registerPolling(actors, config.eltako["polling-interval"] ?? 10_000)
 }
 
 export const startApp = async () => {

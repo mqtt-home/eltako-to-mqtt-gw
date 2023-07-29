@@ -24,12 +24,9 @@ export class ShadingActor {
     public blindsHalfOpenPercentage: number = 3
     public name?: string
 
-    constructor (hostname: string) {
-        // this.ip = ip;
-        // this.username = username;
-        // this.password = password;
+    constructor (ip: string) {
         this.instance = new Axios({
-            baseURL: `https://${hostname}:443/api/v0`,
+            baseURL: `https://${ip}:443/api/v0`,
             headers: {
                 "Content-Type": "application/json"
             },

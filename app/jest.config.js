@@ -16,6 +16,11 @@ module.exports = {
         "src/**/*.{ts,tsx,js,jsx}",
         "lib/**/*.{ts,tsx,js,jsx}"
     ],
+    coveragePathIgnorePatterns: [
+        "testutils",
+        "mqtt-client.ts",
+        "app.ts",
+    ],
     transform: {
         "^.+\\.(ts|tsx|js|jsx)$": "ts-jest",
     },

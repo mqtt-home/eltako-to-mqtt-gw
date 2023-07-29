@@ -1,12 +1,11 @@
-import { ConfigEltako } from "./config/config"
 import { ShadingActor } from "./eltako/api/eltako-api"
 import { log } from "./logger"
 import { publish } from "./mqtt/mqtt-client"
 
-export const registerPolling = (actors: ShadingActor[], config: ConfigEltako) => {
-    const polling = config["polling-interval"] ?? 10_000
+export const registerPolling = (actors: ShadingActor[], pollingIntervalMs: number) => {
+    const intervals: any[] = []
     for (const actor of actors) {
-        setInterval(async () => {
+        intervals.push(setInterval(async () => {
             log.debug("Polling actor", actor.getDisplayName())
             try {
                 const position = await actor.getPosition()
@@ -17,6 +16,11 @@ export const registerPolling = (actors: ShadingActor[], config: ConfigEltako) =>
             catch (e) {
                 log.error("Failed to poll actor", actor.getDisplayName(), e)
             }
-        }, polling)
+        }, pollingIntervalMs))
+    }
+    return () => {
+        for (const interval of intervals) {
+            clearInterval(interval)
+        }
     }
 }
