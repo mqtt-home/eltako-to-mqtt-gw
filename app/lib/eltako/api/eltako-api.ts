@@ -1,6 +1,7 @@
 import Duration from "@icholy/duration"
 import { Axios } from "axios"
 import https from "https"
+import { ConfigEltakoDevice } from "../../config/config"
 import { log } from "../../logger"
 import { currentPosition, Device, Info, targetPosition } from "./device"
 
@@ -9,7 +10,7 @@ const ignoringCertsAgent = new https.Agent({
 })
 
 const sleep = async (ms: number) => {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 type InfoProvider = (x: Device) => Info[]
@@ -20,15 +21,17 @@ export class ShadingActor {
     private devices: Device[] = []
     private username?: string
     private password?: string
+    public blindsHalfOpenPercentage: number = 3
+    public name?: string
 
-    constructor(ip: string) {
+    constructor (ip: string) {
         // this.ip = ip;
         // this.username = username;
         // this.password = password;
         this.instance = new Axios({
             baseURL: `https://${ip}:443/api/v0`,
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             },
             httpsAgent: ignoringCertsAgent
         })
@@ -45,23 +48,23 @@ export class ShadingActor {
             throw new Error("Username or password not set")
         }
 
-        let response = await this.instance.post("/login", JSON.stringify({
-            "user": this.username,
-            "password": this.password
+        const response = await this.instance.post("/login", JSON.stringify({
+            user: this.username,
+            password: this.password
         }), {
             headers: {
-                "Content-Type": "application/json",
+                "Content-Type": "application/json"
             }
         })
 
         const data = JSON.parse(response.data)
         this.instance.defaults.headers.common = {
-            "Authorization": data.apiKey
+            Authorization: data.apiKey
         }
     }
 
     public fetchDevices = async () => {
-        let response = await this.instance.get("/devices")
+        const response = await this.instance.get("/devices")
         const data = JSON.parse(response.data)
         this.devices = data as Device[]
         return this.devices
@@ -76,7 +79,7 @@ export class ShadingActor {
     }
 
     private findDeviceBy = (identifier: string, provider: InfoProvider) => {
-        if (this.devices.length == 0) {
+        if (this.devices.length === 0) {
             throw new Error("No devices found")
         }
 
@@ -88,25 +91,25 @@ export class ShadingActor {
     }
 
     public getDisplayName = () => {
-        return this.findDeviceByInfo(currentPosition).displayName
+        return this.name ?? this.findDeviceByInfo(currentPosition).displayName
     }
 
     public setPosition = async (pos: number, device: Device = this.findDeviceByFunction(targetPosition)) => {
         return await this.withRetry(async () => {
             log.info(`Setting position of device ${device.displayName} to ${pos}`)
-            let response = await this.instance.put( `/devices/${device.deviceGuid}/functions/${targetPosition}`, JSON.stringify(
+            const response = await this.instance.put(`/devices/${device.deviceGuid}/functions/${targetPosition}`, JSON.stringify(
                 {
-                    "type": "number",
-                    "identifier": targetPosition,
-                    "value": pos
+                    type: "number",
+                    identifier: targetPosition,
+                    value: pos
                 }
             ), {
                 headers: {
-                    "Content-Type": "application/json",
+                    "Content-Type": "application/json"
                 }
             })
 
-            if (response.status != 202) {
+            if (response.status !== 202) {
                 throw new Error(`Unexpected status code ${response.status}, expected 202. Response: ${response.data}`)
             }
         })
@@ -131,7 +134,7 @@ export class ShadingActor {
 
     public getPosition = async (device: Device = this.findDeviceByInfo(currentPosition)) => {
         return await this.withRetry(async () => {
-            let response = await this.instance.get(`/devices/${device.deviceGuid}/infos/${currentPosition}`)
+            const response = await this.instance.get(`/devices/${device.deviceGuid}/infos/${currentPosition}`)
             const data = JSON.parse(response.data)
             return data.value
         })
@@ -150,7 +153,7 @@ export class ShadingActor {
 
         const startTime = new Date().getTime()
         let p = await this.getPosition(device)
-        while (p != position) {
+        while (p !== position) {
             if (myWaitJob !== this.waitJob) {
                 log.debug(`Wait for position of device ${device.displayName} to ${position} aborted`)
                 return
@@ -183,14 +186,15 @@ export class ShadingActor {
 
     public closeAndOpenBlinds = async () => {
         await this.setAndWaitForPosition(0)
-        await this.setAndWaitForPosition(3)
+        await this.setAndWaitForPosition(this.blindsHalfOpenPercentage)
     }
 }
 
-export const initActor = async (ip: string, username: string, password: string) => {
-    log.info("Initializing actor", { ip })
-    const actor = new ShadingActor(ip)
-    await actor.login(username, password)
+export const initActor = async (config: ConfigEltakoDevice) => {
+    log.info("Initializing actor", { ip: config.ip })
+    const actor = new ShadingActor(config.ip)
+    actor.name = config.name
+    await actor.login(config.username, config.password)
     await actor.fetchDevices()
     return actor
 }

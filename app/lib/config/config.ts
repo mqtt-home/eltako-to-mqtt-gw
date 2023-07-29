@@ -15,6 +15,10 @@ export type ConfigEltakoDevice = {
     ip: string
     username: string
     password: string
+    name?: string
+    blindsConfig?: {
+        halfOpenPercentage?: number
+    }
 }
 
 export type ConfigEltako = {
@@ -50,17 +54,10 @@ export const applyDefaults = (config: any) => {
     } as Config
 }
 
-let configFile: string
-
 export const loadConfig = (file: string) => {
-    configFile = file
     const buffer = fs.readFileSync(file)
     applyConfig(JSON.parse(buffer.toString()))
     return appConfig
-}
-
-const equals = (obj1: any, obj2: any) => {
-    return JSON.stringify(obj1) === JSON.stringify(obj2)
 }
 
 export const applyConfig = (config: any) => {

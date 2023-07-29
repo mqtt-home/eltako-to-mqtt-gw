@@ -2,13 +2,22 @@
   "mqtt": {
     "url": "tcp://192.168.0.1:1883",
     "retain": true,
-    "topic": "home/miele",
+    "topic": "home/eltako",
     "qos": 2
   },
-  "miele": {
-    "client-id": "your-client-id",
-    "client-secret": "your-client-secret",
-    "username": "your-mail-address",
-    "password": "your-password"
-  }
+  "eltako": {
+    "devices": [
+      {
+        "ip": "192.168.1.15",
+        "username": "admin",
+        "password": "123456789",
+        "name": "living room",
+        "blindsConfig": {
+          "halfOpenPercentage": 2
+        }
+      }
+    ],
+    "polling-interval": 120000
+  },
+  "loglevel": "trace"
 }

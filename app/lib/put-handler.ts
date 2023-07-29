@@ -1,4 +1,4 @@
-import { getActors } from "./app"
+import { getActors } from "./actorRegistry"
 import { log } from "./logger"
 
 type Position = {
@@ -33,15 +33,15 @@ export const putMessage = async (topic: string, message: Buffer) => {
         }
         else if (isAction(msg)) {
             switch (msg.action) {
-                case "open":
-                    await actor.open()
-                    break
-                case "close":
-                    await actor.close()
-                    break
-                case "closeAndOpenBlinds":
-                    await actor.closeAndOpenBlinds()
-                    break
+            case "open":
+                await actor.open()
+                break
+            case "close":
+                await actor.close()
+                break
+            case "closeAndOpenBlinds":
+                await actor.closeAndOpenBlinds()
+                break
             }
         }
         else {

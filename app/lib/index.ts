@@ -13,6 +13,6 @@ if (process.argv.length !== 3) {
 let configFile = process.argv[2]
 configFile = configFile.startsWith(".") ? path.join(__dirname, "..", configFile) : configFile
 log.info("Using config from file", configFile)
-const config = loadConfig(configFile)
+loadConfig(configFile)
 
 startApp().then()
