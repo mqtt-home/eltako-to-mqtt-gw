@@ -1,10 +1,17 @@
 import { registerActors } from "../../actorRegistry"
+import { log } from "../../logger"
 import { localConfig, server } from "../eltako-testutils"
-import { initActor, ShadingActor } from "./eltako-api"
+import { initActor, ShadingActor, withRetry } from "./eltako-api"
 
 describe("eltako-api", () => {
-    beforeAll(() => server.listen())
-    afterAll(() => server.close())
+    beforeAll(() => {
+        log.off()
+        server.listen()
+    })
+    afterAll(() => {
+        log.on()
+        server.close()
+    })
 
     test("Login", async () => {
         const actor = await initActor(localConfig)
@@ -73,5 +80,26 @@ describe("eltako-api", () => {
             devices: [localConfig]
         })
         expect(registry.length).toBe(1)
+    })
+
+    test("Retry success", async () => {
+        let ctr = 0
+        const func = async () => {
+            ctr++
+            if (ctr < 3) {
+                throw new Error("Test error")
+            }
+            return 42
+        }
+        const newVar = await withRetry(func)
+        expect(newVar).toBe(42)
+    })
+
+    test("Retry fail", async () => {
+        const func = async () => {
+            throw new Error("Test error")
+        }
+        await expect(async () => await withRetry(func))
+            .rejects.toThrow()
     })
 })

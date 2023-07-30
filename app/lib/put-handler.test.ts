@@ -1,10 +1,17 @@
 import { getActors, registerActors } from "./actorRegistry"
 import { localConfig, server } from "./eltako/eltako-testutils"
+import { log } from "./logger"
 import { putMessage } from "./put-handler"
 
 describe("put-handler", () => {
-    beforeAll(() => server.listen())
-    afterAll(() => server.close())
+    beforeAll(() => {
+        log.off()
+        server.listen()
+    })
+    afterAll(() => {
+        log.on()
+        server.close()
+    })
 
     test("put position", async () => {
         await registerActors({
