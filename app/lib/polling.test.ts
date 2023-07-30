@@ -1,5 +1,6 @@
 import { initActor } from "./eltako/api/eltako-api"
 import { localConfig, server } from "./eltako/eltako-testutils"
+import { log } from "./logger"
 import { registerPolling } from "./polling"
 
 const publish = jest.fn()
@@ -10,8 +11,14 @@ jest.mock("./mqtt/mqtt-client", () => ({
 }))
 
 describe("polling", () => {
-    beforeAll(() => server.listen())
-    afterAll(() => server.close())
+    beforeAll(() => {
+        log.off()
+        server.listen()
+    })
+    afterAll(() => {
+        log.on()
+        server.close()
+    })
 
     test("register polling without devices", () => {
         const cleanup = registerPolling([], 100)

@@ -13,6 +13,23 @@ const sleep = async (ms: number) => {
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+export const withRetry = async (func: () => Promise<any>) => {
+    let retryCount = 0
+    while (true) {
+        try {
+            return await func()
+        }
+        catch (e) {
+            if (retryCount > 3) {
+                throw e
+            }
+            retryCount++
+            log.warn(`Error while executing function, retrying ${retryCount}`, e)
+            await sleep(1)
+        }
+    }
+}
+
 type InfoProvider = (x: Device) => Info[]
 
 export class ShadingActor {
@@ -96,7 +113,7 @@ export class ShadingActor {
     }
 
     public setPosition = async (pos: number, device: Device = this.findDeviceByFunction(targetPosition)) => {
-        return await this.withRetry(async () => {
+        return await withRetry(async () => {
             log.info(`Setting position of device ${device.displayName} to ${pos}`)
             const response = await this.instance.put(`/devices/${device.deviceGuid}/functions/${targetPosition}`, JSON.stringify(
                 {
@@ -116,25 +133,8 @@ export class ShadingActor {
         })
     }
 
-    private withRetry = async (func: () => Promise<any>) => {
-        let retryCount = 0
-        while (true) {
-            try {
-                return await func()
-            }
-            catch (e) {
-                if (retryCount > 3) {
-                    throw e
-                }
-                retryCount++
-                log.warn(`Error while executing function, retrying ${retryCount}`, e)
-                await sleep(1)
-            }
-        }
-    }
-
     public getPosition = async (device: Device = this.findDeviceByInfo(currentPosition)) => {
-        return await this.withRetry(async () => {
+        return await withRetry(async () => {
             const response = await this.instance.get(`/devices/${device.deviceGuid}/infos/${currentPosition}`)
             const data = JSON.parse(response.data)
             return data.value
