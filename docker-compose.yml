@@ -6,5 +6,5 @@ services:
     image: pharndt/eltakomqtt:${VERSION}
     build: .
     volumes:
-      - ./production/config:/var/lib/miele-to-mqtt-gw:ro
+      - ./production/config:/var/lib/eltako-to-mqtt-gw:ro
     restart: "no"
