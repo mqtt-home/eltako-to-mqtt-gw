@@ -4,8 +4,6 @@
 
 Convert the Eltako Series 62-IP data to MQTT messages
 
-This application will post two MQTT messages for each connected device: one short message and a full message.
-
 ## Messages
 
 ### Position
