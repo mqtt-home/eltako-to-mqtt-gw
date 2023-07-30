@@ -6,7 +6,84 @@ Convert the Eltako Series 62-IP data to MQTT messages
 
 This application will post two MQTT messages for each connected device: one short message and a full message.
 
-# Releases
+## Messages
 
-Currently, no releases are available.
-The implementation is still in development and supports only the `ESB62NP-IP/110-240V` motion blind actor.
+### Position
+
+Topic: `home/eltako/<device-name>`
+
+```json
+{
+  "position": 0
+}
+```
+
+### Set position
+
+Topic: `home/eltako/<device-name>/set`
+
+```json
+{
+  "position": 100
+}
+```
+
+### Open the blinds
+
+Topic: `home/eltako/<device-name>/set`
+
+```json
+{
+  "action": "open"
+}
+```
+
+### Close the blinds
+
+Topic: `home/eltako/<device-name>/set`
+
+```json
+{
+  "action": "close"
+}
+```
+
+### Close and open the blinds
+
+Topic: `home/eltako/<device-name>/set`
+
+```json
+{
+  "action": "closeAndOpenBlinds"
+}
+```
+
+## Configuration
+
+Example configuration:
+
+```json
+{
+  "mqtt": {
+    "url": "tcp://192.168.0.1:1883",
+    "retain": true,
+    "topic": "home/eltako",
+    "qos": 2
+  },
+  "eltako": {
+    "devices": [
+      {
+        "ip": "192.168.1.15",
+        "username": "admin",
+        "password": "123456789",
+        "name": "living-room",
+        "blindsConfig": {
+          "halfOpenPercentage": 2
+        }
+      }
+    ],
+    "polling-interval": 120000
+  },
+  "loglevel": "trace"
+}
+```
