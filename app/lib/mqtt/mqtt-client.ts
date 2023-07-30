@@ -1,4 +1,6 @@
 import mqtt from "mqtt"
+import { IConnectPacket } from "mqtt-packet"
+import { IClientOptions } from "mqtt/src/lib/client"
 
 import { ConfigMqtt, getAppConfig } from "../config/config"
 import { log } from "../logger"
@@ -67,7 +69,12 @@ const online = () => {
 const willMessage = () => {
     const config = getAppConfig()
     if (config.mqtt["bridge-info"]) {
-        return { topic: brideTopic(), payload: "offline", qos: config.mqtt.qos, retain: config.mqtt.retain }
+        return {
+            topic: brideTopic(),
+            payload: Buffer.from("offline", "utf8"),
+            qos: config.mqtt.qos,
+            retain: config.mqtt.retain
+        } as IConnectPacket["will"]
     }
     else {
         return undefined
@@ -110,7 +117,7 @@ export const connectMqtt: (() => Promise<() => void>) = async (config = getAppCo
 }
 
 export const createMqttInstance = (config: ConfigMqtt) => {
-    const options = {
+    const options: IClientOptions = {
         clean: true,
         connectTimeout: 4000,
         clientId: makeId(9),
