@@ -4,6 +4,10 @@
 
 Convert the Eltako Series 62-IP data to MQTT messages
 
+## Devices
+
+Currently, the `ESB62NP-IP/110-240V` is supported.
+
 ## Messages
 
 ### Position
