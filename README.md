@@ -30,7 +30,7 @@ Topic: `home/eltako/<device-name>/set`
 }
 ```
 
-### Open the blinds
+### Open the shading
 
 Topic: `home/eltako/<device-name>/set`
 
@@ -40,7 +40,7 @@ Topic: `home/eltako/<device-name>/set`
 }
 ```
 
-### Close the blinds
+### Close the shading
 
 Topic: `home/eltako/<device-name>/set`
 
