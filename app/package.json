@@ -46,7 +46,7 @@
         "@icholy/duration": "5.1.0",
         "async-lock": "1.4.0",
         "axios": "1.4.0",
-        "mqtt": "5.0.1",
+        "mqtt": "5.0.3",
         "node-cron": "3.0.2",
         "winston": "3.10.0",
         "winston-transport": "4.5.0"
