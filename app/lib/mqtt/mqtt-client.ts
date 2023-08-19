@@ -1,5 +1,4 @@
-import mqtt, { MqttClient } from "mqtt"
-import { IConnectPacket } from "mqtt-packet"
+import mqtt from "mqtt"
 
 import { ConfigMqtt, getAppConfig } from "../config/config"
 import { log } from "../logger"
@@ -113,7 +112,7 @@ export const connectMqtt: (() => Promise<() => void>) = async (config = getAppCo
 }
 
 export const createMqttInstance = (config: ConfigMqtt) => {
-    const options= {
+    const options = {
         clean: true,
         connectTimeout: 4000,
         clientId: makeId(9),
