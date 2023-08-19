@@ -1,6 +1,5 @@
-import mqtt from "mqtt"
+import mqtt, { MqttClient } from "mqtt"
 import { IConnectPacket } from "mqtt-packet"
-import { IClientOptions } from "mqtt/src/lib/client"
 
 import { ConfigMqtt, getAppConfig } from "../config/config"
 import { log } from "../logger"
@@ -71,10 +70,10 @@ const willMessage = () => {
     if (config.mqtt["bridge-info"]) {
         return {
             topic: brideTopic(),
-            payload: Buffer.from("offline", "utf8"),
+            payload: "offline", // Buffer.from("offline", "utf8"),
             qos: config.mqtt.qos,
             retain: config.mqtt.retain
-        } as IConnectPacket["will"]
+        } // as IConnectPacket["will"]
     }
     else {
         return undefined
@@ -105,9 +104,6 @@ export const connectMqtt: (() => Promise<() => void>) = async (config = getAppCo
     client.on("message", async (topic, message) => {
         const sliced = topic.slice(config.topic.length + 1)
 
-        // if (topic.endsWith("/get") || topic.endsWith("/state")) {
-        //     publishResource(resource)
-        // }
         if (topic.endsWith("/set")) {
             await putMessage(sliced, message)
         }
@@ -117,7 +113,7 @@ export const connectMqtt: (() => Promise<() => void>) = async (config = getAppCo
 }
 
 export const createMqttInstance = (config: ConfigMqtt) => {
-    const options: IClientOptions = {
+    const options= {
         clean: true,
         connectTimeout: 4000,
         clientId: makeId(9),
