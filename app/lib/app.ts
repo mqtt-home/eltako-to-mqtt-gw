@@ -25,7 +25,7 @@ export const startApp = async () => {
         await start()
         log.info("Application is now ready.")
 
-        const cronExpression = "0 */2 * * *"
+        const cronExpression = "0 0 * * *"
         log.info("Scheduling token-update at", cronExpression)
         const task = cron.schedule(cronExpression, triggerFullUpdate)
         task.start()

@@ -29,10 +29,12 @@ describe("polling", () => {
         const actor = await initActor(localConfig)
         await actor.fetchDevices()
         const cleanup = registerPolling([actor], 100)
-
-        await new Promise(resolve => setTimeout(resolve, 280))
-        expect(publish).toBeCalledTimes(2)
-
-        cleanup()
+        try {
+            await new Promise(resolve => setTimeout(resolve, 280))
+            expect(publish).toBeCalledTimes(3)
+        }
+        finally {
+            cleanup()
+        }
     })
 })

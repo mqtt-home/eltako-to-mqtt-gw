@@ -5,7 +5,7 @@ import { publish } from "./mqtt/mqtt-client"
 export const registerPolling = (actors: ShadingActor[], pollingIntervalMs: number) => {
     const intervals: any[] = []
     for (const actor of actors) {
-        intervals.push(setInterval(async () => {
+        const task = async () => {
             log.debug("Polling actor", actor.getDisplayName())
             try {
                 const position = await actor.getPosition()
@@ -16,7 +16,10 @@ export const registerPolling = (actors: ShadingActor[], pollingIntervalMs: numbe
             catch (e) {
                 log.error("Failed to poll actor", actor.getDisplayName(), e)
             }
-        }, pollingIntervalMs))
+        }
+
+        task().then(() => log.info("Initial polling done", actor.getDisplayName))
+        intervals.push(setInterval(task, pollingIntervalMs))
     }
     return () => {
         for (const interval of intervals) {
