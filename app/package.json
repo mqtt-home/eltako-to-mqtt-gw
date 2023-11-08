@@ -23,7 +23,7 @@
         "@types/async-lock": "1.4.0",
         "@types/jest": "29.5.3",
         "@types/node": "20.5.1",
-        "@types/node-cron": "3.0.8",
+        "@types/node-cron": "3.0.11",
         "@typescript-eslint/eslint-plugin": "6.4.0",
         "@typescript-eslint/parser": "6.4.0",
         "@vercel/ncc": "0.36.1",
@@ -47,7 +47,7 @@
         "async-lock": "1.4.0",
         "axios": "1.4.0",
         "mqtt": "4.3.7",
-        "node-cron": "3.0.2",
+        "node-cron": "3.0.3",
         "winston": "3.10.0",
         "winston-transport": "4.5.0"
     }
