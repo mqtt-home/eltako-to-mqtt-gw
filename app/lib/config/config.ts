@@ -54,10 +54,20 @@ export const applyDefaults = (config: any) => {
     } as Config
 }
 
+export const replaceEnvVariables = (input: string) => {
+    const envVariableRegex = /\${([^}]+)}/g
+
+    return input.replace(envVariableRegex, (_, envVarName) => {
+        return process.env[envVarName] || ""
+    })
+}
+
 export const loadConfig = (file: string) => {
     const buffer = fs.readFileSync(file)
-    applyConfig(JSON.parse(buffer.toString()))
-    return appConfig
+    const effectiveConfig = replaceEnvVariables(buffer.toString())
+    log.trace("Using config", effectiveConfig)
+    log.trace("parsing config")
+    applyConfig(JSON.parse(effectiveConfig))
 }
 
 export const applyConfig = (config: any) => {
