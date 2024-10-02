@@ -2,6 +2,9 @@ import { ShadingActor } from "./eltako/api/eltako-api"
 import { log } from "./logger"
 import { publish } from "./mqtt/mqtt-client"
 
+let pollingErrorCount = 0
+let successCount = 0
+
 export const registerPolling = (actors: ShadingActor[], pollingIntervalMs: number) => {
     const intervals: any[] = []
     for (const actor of actors) {
@@ -12,9 +15,22 @@ export const registerPolling = (actors: ShadingActor[], pollingIntervalMs: numbe
                 const displayName = actor.getDisplayName()
                 log.debug("Polling result", { position, displayName })
                 publish({ position }, displayName)
+                successCount++
+
+                if (pollingErrorCount > 0 && successCount > (5 * actors.length)) {
+                    log.info("Good success rate, resetting polling error count")
+                    pollingErrorCount = 0
+                }
             }
             catch (e) {
-                log.error("Failed to poll actor", actor.getDisplayName(), e)
+                pollingErrorCount++
+                successCount = 0
+                log.error("Failed to poll actor", actor.getDisplayName(), "Error Count: " + pollingErrorCount, e)
+
+                if (pollingErrorCount > (5 * actors.length)) {
+                    log.error("Too many polling errors, restarting service")
+                    process.exit(1)
+                }
             }
         }
 
