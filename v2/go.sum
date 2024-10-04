@@ -1,0 +1,12 @@
+github.com/eclipse/paho.mqtt.golang v1.4.3 h1:2kwcUGn8seMUfWndX0hGbvH8r7crgcJguQNCyp70xik=
+github.com/eclipse/paho.mqtt.golang v1.4.3/go.mod h1:CSYvoAlsMkhYOXh/oKyxa8EcBci6dVkLCbo5tTC1RIE=
+github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
+github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/philipparndt/go-logger v1.0.0 h1:5khKl1q8q6FH74S1wF5KPl6DvdZnRdPKqKbBPQDr9P4=
+github.com/philipparndt/go-logger v1.0.0/go.mod h1:4mWf8eNH82GhKl5byAFwXcux9WPNuaePaPaAFbgjHXg=
+github.com/philipparndt/mqtt-gateway v1.3.0 h1:QeJ0XIEnlzH4Qm7vqAQN3WTrI45UcPxlcQFcTrCXvn8=
+github.com/philipparndt/mqtt-gateway v1.3.0/go.mod h1:N6LC57xFs/u41Xc5csPHTACm/00GyOyMgIC+oOqp32Y=
+golang.org/x/net v0.8.0 h1:Zrh2ngAOFYneWTAIAPethzeaQLuHwhuBkuV6ZiRnUaQ=
+golang.org/x/net v0.8.0/go.mod h1:QVkue5JL9kW//ek3r6jTKnTFis1tRmNAW2P1shuFdJc=
+golang.org/x/sync v0.1.0 h1:wsuoTGHzEhffawBOhz5CYhcrV4IdKZbEyZjBMuTp12o=
+golang.org/x/sync v0.1.0/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
