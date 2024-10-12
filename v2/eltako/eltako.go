@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
+	"github.com/philipparndt/go-logger"
 	"io"
 	"net/http"
+	"time"
 )
 
 type ShadingActor struct {
@@ -94,4 +96,46 @@ func (s *ShadingActor) getDevices() ([]Device, error) {
 	}
 
 	return devices, nil
+}
+
+func (s *ShadingActor) findDeviceByFunctionName(functionName string) (*Device, error) {
+	for _, device := range s.Devices {
+		for _, function := range device.Functions {
+			if function.Identifier == functionName {
+				return &device, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("device not found")
+}
+func (s *ShadingActor) findDeviceByInfo(infoName string) (*Device, error) {
+	for _, device := range s.Devices {
+		for _, info := range device.Infos {
+			if info.Identifier == infoName {
+				return &device, nil
+			}
+		}
+	}
+	return nil, fmt.Errorf("device not found")
+}
+
+func executeWithRetry[T any](times int, f func() (T, error)) (T, error) {
+	current := 0
+	var zeroValue T // Zero value of the type T
+	for {
+		result, err := f()
+		if err == nil {
+			return result, nil
+		}
+
+		current++
+		if current >= times {
+			logger.Error("Failed to execute after", times)
+			return zeroValue, err
+		}
+
+		logger.Error("Failed to execute, retrying: ", err)
+		// wait for 500ms before retrying
+		time.Sleep(500 * time.Millisecond)
+	}
 }

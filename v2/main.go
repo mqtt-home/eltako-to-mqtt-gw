@@ -7,6 +7,7 @@ import (
 	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
@@ -41,7 +42,26 @@ func main() {
 		for _, device := range actor.Devices {
 			logger.Info("Device", device)
 		}
+
+		position, err := actor.GetPosition()
+		if err != nil {
+			logger.Error("Failed getting position", err)
+			return
+		}
+
+		logger.Info("Position", position)
+
+		wg := sync.WaitGroup{}
+		err = actor.SetAndWaitForPosition(&wg, 5, 100)
+		if err != nil {
+			logger.Info("Failed setting position", err)
+		}
+
+		wg.Wait()
+		logger.Info("Done")
 	}
+
+	// aef1bccd-d0e9-4cb5-8328-42485151accb
 
 	//api = nuki.New(cfg.Nuki.Target.Web.SmartlockId, cfg.Nuki.Target.Web.Bearer)
 

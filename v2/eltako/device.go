@@ -14,3 +14,9 @@ type Device struct {
 	Settings    []Data `json:"settings"`
 	Functions   []Data `json:"functions"`
 }
+
+type Command struct {
+	Type       string      `json:"type"`
+	Identifier interface{} `json:"identifier"`
+	Value      interface{} `json:"value"`
+}

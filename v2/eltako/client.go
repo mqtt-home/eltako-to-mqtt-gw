@@ -41,12 +41,11 @@ func (c *HTTPClient) Get(url string) (*http.Response, error) {
 }
 
 func (c *HTTPClient) Post(url string, body io.Reader) (*http.Response, error) {
-	req, err := http.NewRequest("POST", c.BaseURL+url, body)
-	if err != nil {
-		return nil, err
-	}
+	return c.NewRequest("POST", url, body)
+}
 
-	return c.Client.Do(req)
+func (c *HTTPClient) Put(url string, body io.Reader) (*http.Response, error) {
+	return c.NewRequest("PUT", url, body)
 }
 
 func (c *HTTPClient) NewRequest(method, url string, body io.Reader) (*http.Response, error) {
