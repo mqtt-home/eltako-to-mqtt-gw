@@ -1,15 +1,26 @@
 package main
 
 import (
+	"fmt"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/eltako"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 )
+
+func startActors(cfg config.Eltako) {
+	for _, device := range cfg.Devices {
+		logger.Info(fmt.Sprintf("Initializing %s", device.String()))
+		actor := eltako.NewShadingActor(device)
+		err := actor.Start(cfg)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -27,39 +38,40 @@ func main() {
 		return
 	}
 
-	logger.Info("Config file", cfg)
-
-	for _, device := range cfg.Eltako.Devices {
-		logger.Info("Device", device)
-		actor := eltako.NewShadingActor(device)
-		//actor.Start()
-		err := actor.UpdateToken()
-		if err != nil {
-			logger.Error("Failed updating token", err)
-			return
-		}
-
-		for _, device := range actor.Devices {
-			logger.Info("Device", device)
-		}
-
-		position, err := actor.GetPosition()
-		if err != nil {
-			logger.Error("Failed getting position", err)
-			return
-		}
-
-		logger.Info("Position", position)
-
-		wg := sync.WaitGroup{}
-		err = actor.SetAndWaitForPosition(&wg, 5, 100)
-		if err != nil {
-			logger.Info("Failed setting position", err)
-		}
-
-		wg.Wait()
-		logger.Info("Done")
-	}
+	//for _, device := range cfg.Eltako.Devices {
+	//    logger.Info("Device", device)
+	//    actor := eltako.NewShadingActor(device)
+	//    err := actor.Start(cfg.Eltako)
+	//    if err != nil {
+	//        panic(err)
+	//    }
+	//    //err := actor.UpdateToken()
+	//    //if err != nil {
+	//    //	logger.Error("Failed updating token", err)
+	//    //	return
+	//    //}
+	//    //
+	//    //for _, device := range actor.Devices {
+	//    //	logger.Info("Device", device)
+	//    //}
+	//    //
+	//    //position, err := actor.GetPosition()
+	//    //if err != nil {
+	//    //	logger.Error("Failed getting position", err)
+	//    //	return
+	//    //}
+	//    //
+	//    //logger.Info("Position", position)
+	//    //
+	//    //wg := sync.WaitGroup{}
+	//    //err = actor.SetAndWaitForPosition(&wg, 5, 100)
+	//    //if err != nil {
+	//    //	logger.Info("Failed setting position", err)
+	//    //}
+	//    //
+	//    //wg.Wait()
+	//    //logger.Info("Done")
+	//}
 
 	// aef1bccd-d0e9-4cb5-8328-42485151accb
 
@@ -67,6 +79,8 @@ func main() {
 
 	logger.SetLevel(cfg.LogLevel)
 	mqtt.Start(cfg.MQTT, "eltako_mqtt")
+
+	startActors(cfg.Eltako)
 
 	//mqtt.Subscribe(cfg.Nuki.Source, OnMessage)
 	//mqtt.Subscribe(cfg.Nuki.Fingerprint, OnFingerprintButton)

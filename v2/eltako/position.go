@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/mqtt-home/eltako-to-mqtt-gw/retry"
 	"github.com/philipparndt/go-logger"
 	"io"
 	"net/http"
@@ -15,7 +16,7 @@ func (s *ShadingActor) GetPosition() (int, error) {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 
-	return executeWithRetry[int](3, func() (int, error) {
+	return retry.Times[int](3, func() (int, error) {
 		return s.getPosition()
 	})
 }
@@ -56,7 +57,7 @@ func (s *ShadingActor) SetPosition(position int) (bool, error) {
 		return false, fmt.Errorf("invalid position")
 	}
 
-	return executeWithRetry[bool](3, func() (bool, error) {
+	return retry.Times[bool](3, func() (bool, error) {
 		return s.setPosition(position)
 	})
 }

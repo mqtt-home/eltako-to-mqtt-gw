@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/config"
 	"os"
@@ -21,6 +22,10 @@ type Device struct {
 	BlindsConfig struct {
 		HalfOpenPercentage float64 `json:"halfOpenPercentage"`
 	} `json:"blindsConfig"`
+}
+
+func (d *Device) String() string {
+	return fmt.Sprintf("Device{name: %s; ip: %s}", d.Name, d.Ip)
 }
 
 type Eltako struct {

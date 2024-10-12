@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/philipparndt/go-logger"
+	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"io"
 	"net/http"
 	"time"
@@ -15,13 +16,17 @@ type ShadingActor struct {
 	device  config.Device
 	client  *HTTPClient
 	Devices []Device
+	Name    string
+	IP      string
 }
 
 func NewShadingActor(device config.Device) *ShadingActor {
-	client := NewHTTPClient("https://" + device.Ip + ":443/api/v0")
+	client := NewHTTPClient(fmt.Sprintf("https://%s:443/api/v0", device.Ip))
 	actor := &ShadingActor{
 		device: device,
 		client: client,
+		Name:   device.Name,
+		IP:     device.Ip,
 	}
 	err := actor.init()
 	if err != nil {
@@ -38,6 +43,17 @@ func (s *ShadingActor) init() error {
 	devices, err := s.getDevices()
 	s.Devices = devices
 	return nil
+}
+
+func (s *ShadingActor) DisplayName() string {
+	if s.Name == "" {
+		info, err := s.findDeviceByInfo("currentPosition")
+		if err != nil {
+			return s.IP
+		}
+		return info.DisplayName
+	}
+	return s.Name
 }
 
 func (s *ShadingActor) UpdateToken() error {
@@ -119,23 +135,53 @@ func (s *ShadingActor) findDeviceByInfo(infoName string) (*Device, error) {
 	return nil, fmt.Errorf("device not found")
 }
 
-func executeWithRetry[T any](times int, f func() (T, error)) (T, error) {
-	current := 0
-	var zeroValue T // Zero value of the type T
-	for {
-		result, err := f()
-		if err == nil {
-			return result, nil
-		}
+func (s *ShadingActor) String() string {
+	return fmt.Sprintf("ShadingActor{name: %s; ip: %s}", s.Name, s.IP)
+}
 
-		current++
-		if current >= times {
-			logger.Error("Failed to execute after", times)
-			return zeroValue, err
-		}
-
-		logger.Error("Failed to execute, retrying: ", err)
-		// wait for 500ms before retrying
-		time.Sleep(500 * time.Millisecond)
+func (s *ShadingActor) Start(cfg config.Eltako) error {
+	err := s.UpdateToken()
+	if err != nil {
+		return err
 	}
+
+	go func(s *ShadingActor) {
+		for {
+			logger.Debug("Updating token")
+			err := s.UpdateToken()
+			if err != nil {
+				logger.Error("Failed updating token", err)
+			}
+
+			logger.Debug("Token update done, sleeping for 60 minutes")
+			time.Sleep(60 * time.Minute)
+		}
+	}(s)
+
+	if cfg.PollingInterval > 0 {
+		pollingDuration := time.Duration(cfg.PollingInterval) * time.Millisecond
+		logger.Info(fmt.Sprintf("Starting polling of %s with interval %s", s, pollingDuration))
+		go func(s *ShadingActor, cfg config.Eltako) {
+			errorCtr := 0
+			for {
+				position, err := s.getPosition()
+
+				if err != nil {
+					errorCtr++
+					if errorCtr >= 5 {
+						logger.Error("PANIC: Failed to marshal position message", err)
+						panic(err)
+					}
+				} else {
+					errorCtr = 0
+					mqtt.PublishJSON(s.DisplayName(), PositionMessage{position})
+					time.Sleep(pollingDuration)
+				}
+			}
+		}(s, cfg)
+	} else {
+		logger.Info(fmt.Sprintf("Polling disabled for %s", s))
+	}
+
+	return nil
 }
