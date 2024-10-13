@@ -28,6 +28,26 @@ func startActors(cfg config.Eltako) *eltako.ActorRegistry {
 	return registry
 }
 
+func subscribeToCommands(cfg config.Config, actors *eltako.ActorRegistry) {
+	prefix := cfg.MQTT.Topic + "/"
+	postfix := "/set"
+	mqtt.Subscribe(prefix+"+"+postfix, func(topic string, payload []byte) {
+		logger.Info("Received message", topic, string(payload))
+		actor := actors.GetActor(topic[len(prefix) : len(topic)-len(postfix)])
+		if actor == nil {
+			logger.Error("Unknown actor", topic)
+			return
+		}
+
+		command, err := commands.Parse(payload)
+		if err != nil {
+			logger.Error("Failed parsing command", err)
+			return
+		}
+		actor.Apply(command)
+	})
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		logger.Error("No config file specified")
@@ -48,28 +68,7 @@ func main() {
 	mqtt.Start(cfg.MQTT, "eltako_mqtt")
 
 	actors := startActors(cfg.Eltako)
-
-	prefix := cfg.MQTT.Topic + "/"
-	postfix := "/set"
-	mqtt.Subscribe(prefix+"+"+postfix, func(topic string, payload []byte) {
-		logger.Info("Received message", topic, string(payload))
-		actor := actors.GetActor(topic[len(prefix) : len(topic)-len(postfix)])
-		if actor == nil {
-			logger.Error("Unknown actor", topic)
-			return
-		}
-
-		command, err := commands.Parse(payload)
-		if err != nil {
-			logger.Error("Failed parsing command", err)
-			return
-		}
-		actor.Apply(command)
-	})
-
-	//mqtt.Subscribe(cfg.Nuki.Source, OnMessage)
-	//mqtt.Subscribe(cfg.Nuki.Fingerprint, OnFingerprintButton)
-	//mqtt.Subscribe(cfg.MQTT.Topic+"/fingerprint_state", OnFingerprintState)
+	subscribeToCommands(cfg, actors)
 
 	logger.Info("Application is now ready. Press Ctrl+C to quit.")
 

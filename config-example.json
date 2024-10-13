@@ -13,7 +13,8 @@
                 "password": "123456789",
                 "name": "living room",
                 "blindsConfig": {
-                    "halfOpenPercentage": 2
+                    "tiltDownPercentage": 4,
+                    "tiltUpPercentage": 3
                 }
             }
         ],

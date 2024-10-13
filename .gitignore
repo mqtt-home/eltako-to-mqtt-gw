@@ -21,3 +21,5 @@ config-auth.json
 
 .idea
 *.iml
+
+eltako-to-mqtt-gw

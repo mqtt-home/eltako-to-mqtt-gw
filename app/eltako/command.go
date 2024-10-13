@@ -10,11 +10,11 @@ func (s *ShadingActor) Apply(command commands.LLCommand) {
 
 	switch command.Action {
 	case commands.LLActionSet:
-		position, err := s.SetPosition(command.Position)
+		_, err := s.SetPosition(command.Position)
 		if err != nil {
 			logger.Error("Failed setting position", err)
 		} else {
-			logger.Info("Set position to", position)
+			logger.Info("Set position to", command.Position)
 		}
 	case commands.LLActionTilt:
 		s.Tilt(command.Position)

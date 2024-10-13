@@ -60,6 +60,19 @@ Topic: `home/eltako/<device-name>/set`
 }
 ```
 
+### Tilt the blinds
+
+Topic: `home/eltako/<device-name>/set`
+
+```json
+{
+  "action": "tilt",
+  "position": 50
+}
+```
+
+This will move the position to 50% and then tilt the blinds.
+
 ## Configuration
 
 Example configuration:

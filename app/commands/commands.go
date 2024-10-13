@@ -56,7 +56,7 @@ func (c *Action) validate() (LLCommand, error) {
 		llc.Action = LLActionSet
 		llc.Position = c.Position
 	case string(ActionCloseAndOpenBlinds):
-		llc.Action = LLActionSet
+		llc.Action = LLActionTilt
 		llc.Position = 0
 	case string(ActionTilt):
 		llc.Action = LLActionTilt
