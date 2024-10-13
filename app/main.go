@@ -9,21 +9,25 @@ import (
 	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
 func startActors(cfg config.Eltako) *eltako.ActorRegistry {
 	registry := eltako.NewActorRegistry()
+
+	wg := sync.WaitGroup{}
 	for _, device := range cfg.Devices {
 		logger.Info(fmt.Sprintf("Initializing %s", device.String()))
 		actor := eltako.NewShadingActor(device)
-		err := actor.Start(cfg)
+		err := actor.Start(&wg, cfg)
 		if err != nil {
 			panic(err)
 		}
 
 		registry.AddActor(actor)
 	}
+	wg.Wait()
 
 	return registry
 }
