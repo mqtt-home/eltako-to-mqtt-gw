@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
+	"sync"
 	"time"
 )
 
-func (s *ShadingActor) schedulePolling(pollingInterval int) {
+func (s *ShadingActor) schedulePolling(wg *sync.WaitGroup, pollingInterval int) {
 	errorCtr := 0
 	interval := time.Duration(pollingInterval) * time.Millisecond
 	logger.Info(fmt.Sprintf("Starting polling of %s with interval %s", s, interval))
+	wg.Done()
 	for {
 		position, err := s.getPosition()
 
@@ -28,9 +30,10 @@ func (s *ShadingActor) schedulePolling(pollingInterval int) {
 	}
 }
 
-func (s *ShadingActor) scheduleUpdateToken() {
+func (s *ShadingActor) scheduleUpdateToken(wg *sync.WaitGroup) {
 	interval := time.Duration(60) * time.Minute
 	logger.Info(fmt.Sprintf("Scheduling token update of %s with interval %s", s, interval))
+	wg.Done()
 	for {
 		logger.Debug("Updating token")
 		err := s.UpdateToken()

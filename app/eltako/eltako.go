@@ -8,6 +8,7 @@ import (
 	"github.com/philipparndt/go-logger"
 	"io"
 	"net/http"
+	"sync"
 )
 
 type ShadingActor struct {
@@ -139,17 +140,18 @@ func (s *ShadingActor) String() string {
 	return fmt.Sprintf("ShadingActor{name: %s; ip: %s}", s.Name, s.IP)
 }
 
-func (s *ShadingActor) Start(cfg config.Eltako) error {
+func (s *ShadingActor) Start(wg *sync.WaitGroup, cfg config.Eltako) error {
+	wg.Add(2)
 	err := s.UpdateToken()
 	if err != nil {
 		logger.Error(fmt.Sprintf("Initial token update failed for %s", s), err)
 		return err
 	}
 
-	go s.scheduleUpdateToken()
+	go s.scheduleUpdateToken(wg)
 
 	if cfg.PollingInterval > 0 {
-		go s.schedulePolling(cfg.PollingInterval)
+		go s.schedulePolling(wg, cfg.PollingInterval)
 	} else {
 		logger.Info(fmt.Sprintf("Polling disabled for %s", s))
 	}
