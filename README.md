@@ -2,7 +2,12 @@
 
 [![mqtt-smarthome](https://img.shields.io/badge/mqtt-smarthome-blue.svg)](https://github.com/mqtt-smarthome/mqtt-smarthome)
 
-Convert the Eltako Series 62-IP data to MQTT messages
+Convert the Eltako Series 62-IP data to MQTT messages.
+
+Some waring about those devices:
+- they are announced to come with Matter support, but they will never get an update support it
+- they do not support setting the position in a finer granularity than 1% so tilt is only possible when the blinds
+  are small enough so that 1% is a small enough step
 
 ## Devices
 
