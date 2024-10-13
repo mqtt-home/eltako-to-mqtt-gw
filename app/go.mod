@@ -1,6 +1,6 @@
 module github.com/mqtt-home/eltako-to-mqtt-gw
 
-go 1.22.2
+go 1.23.2
 
 require (
 	github.com/philipparndt/go-logger v1.0.0
