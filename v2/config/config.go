@@ -14,14 +14,17 @@ type Config struct {
 	LogLevel string            `json:"loglevel,omitempty"`
 }
 
+type BlindsConfig struct {
+	TiltDownPercentage float64 `json:"tiltDownPercentage"`
+	TiltUpPercentage   float64 `json:"tiltUpPercentage"`
+}
+
 type Device struct {
-	Ip           string `json:"ip"`
-	Username     string `json:"username"`
-	Password     string `json:"password"`
-	Name         string `json:"name"`
-	BlindsConfig struct {
-		HalfOpenPercentage float64 `json:"halfOpenPercentage"`
-	} `json:"blindsConfig"`
+	Ip           string       `json:"ip"`
+	Username     string       `json:"username"`
+	Password     string       `json:"password"`
+	Name         string       `json:"name"`
+	BlindsConfig BlindsConfig `json:"blindsConfig"`
 }
 
 func (d *Device) String() string {

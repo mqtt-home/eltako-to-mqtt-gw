@@ -6,10 +6,8 @@ import (
 	"fmt"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/philipparndt/go-logger"
-	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"io"
 	"net/http"
-	"time"
 )
 
 type ShadingActor struct {
@@ -18,6 +16,7 @@ type ShadingActor struct {
 	Devices []Device
 	Name    string
 	IP      string
+	Config  config.BlindsConfig
 }
 
 func NewShadingActor(device config.Device) *ShadingActor {
@@ -27,6 +26,7 @@ func NewShadingActor(device config.Device) *ShadingActor {
 		client: client,
 		Name:   device.Name,
 		IP:     device.Ip,
+		Config: device.BlindsConfig,
 	}
 	err := actor.init()
 	if err != nil {
@@ -142,43 +142,14 @@ func (s *ShadingActor) String() string {
 func (s *ShadingActor) Start(cfg config.Eltako) error {
 	err := s.UpdateToken()
 	if err != nil {
+		logger.Error(fmt.Sprintf("Initial token update failed for %s", s), err)
 		return err
 	}
 
-	go func(s *ShadingActor) {
-		for {
-			logger.Debug("Updating token")
-			err := s.UpdateToken()
-			if err != nil {
-				logger.Error("Failed updating token", err)
-			}
-
-			logger.Debug("Token update done, sleeping for 60 minutes")
-			time.Sleep(60 * time.Minute)
-		}
-	}(s)
+	go s.scheduleUpdateToken()
 
 	if cfg.PollingInterval > 0 {
-		pollingDuration := time.Duration(cfg.PollingInterval) * time.Millisecond
-		logger.Info(fmt.Sprintf("Starting polling of %s with interval %s", s, pollingDuration))
-		go func(s *ShadingActor, cfg config.Eltako) {
-			errorCtr := 0
-			for {
-				position, err := s.getPosition()
-
-				if err != nil {
-					errorCtr++
-					if errorCtr >= 5 {
-						logger.Error("PANIC: Failed to marshal position message", err)
-						panic(err)
-					}
-				} else {
-					errorCtr = 0
-					mqtt.PublishJSON(s.DisplayName(), PositionMessage{position})
-					time.Sleep(pollingDuration)
-				}
-			}
-		}(s, cfg)
+		go s.schedulePolling(cfg.PollingInterval)
 	} else {
 		logger.Info(fmt.Sprintf("Polling disabled for %s", s))
 	}

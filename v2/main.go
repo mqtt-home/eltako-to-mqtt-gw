@@ -19,6 +19,8 @@ func startActors(cfg config.Eltako) {
 		if err != nil {
 			panic(err)
 		}
+
+		actor.Tilt(50)
 	}
 }
 
