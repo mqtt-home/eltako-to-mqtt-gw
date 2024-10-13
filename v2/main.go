@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mqtt-home/eltako-to-mqtt-gw/commands"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/eltako"
 	"github.com/philipparndt/go-logger"
@@ -11,7 +12,8 @@ import (
 	"syscall"
 )
 
-func startActors(cfg config.Eltako) {
+func startActors(cfg config.Eltako) *eltako.ActorRegistry {
+	registry := eltako.NewActorRegistry()
 	for _, device := range cfg.Devices {
 		logger.Info(fmt.Sprintf("Initializing %s", device.String()))
 		actor := eltako.NewShadingActor(device)
@@ -20,8 +22,10 @@ func startActors(cfg config.Eltako) {
 			panic(err)
 		}
 
-		actor.Tilt(50)
+		registry.AddActor(actor)
 	}
+
+	return registry
 }
 
 func main() {
@@ -40,49 +44,28 @@ func main() {
 		return
 	}
 
-	//for _, device := range cfg.Eltako.Devices {
-	//    logger.Info("Device", device)
-	//    actor := eltako.NewShadingActor(device)
-	//    err := actor.Start(cfg.Eltako)
-	//    if err != nil {
-	//        panic(err)
-	//    }
-	//    //err := actor.UpdateToken()
-	//    //if err != nil {
-	//    //	logger.Error("Failed updating token", err)
-	//    //	return
-	//    //}
-	//    //
-	//    //for _, device := range actor.Devices {
-	//    //	logger.Info("Device", device)
-	//    //}
-	//    //
-	//    //position, err := actor.GetPosition()
-	//    //if err != nil {
-	//    //	logger.Error("Failed getting position", err)
-	//    //	return
-	//    //}
-	//    //
-	//    //logger.Info("Position", position)
-	//    //
-	//    //wg := sync.WaitGroup{}
-	//    //err = actor.SetAndWaitForPosition(&wg, 5, 100)
-	//    //if err != nil {
-	//    //	logger.Info("Failed setting position", err)
-	//    //}
-	//    //
-	//    //wg.Wait()
-	//    //logger.Info("Done")
-	//}
-
-	// aef1bccd-d0e9-4cb5-8328-42485151accb
-
-	//api = nuki.New(cfg.Nuki.Target.Web.SmartlockId, cfg.Nuki.Target.Web.Bearer)
-
 	logger.SetLevel(cfg.LogLevel)
 	mqtt.Start(cfg.MQTT, "eltako_mqtt")
 
-	startActors(cfg.Eltako)
+	actors := startActors(cfg.Eltako)
+
+	prefix := cfg.MQTT.Topic + "/"
+	postfix := "/set"
+	mqtt.Subscribe(prefix+"+"+postfix, func(topic string, payload []byte) {
+		logger.Info("Received message", topic, string(payload))
+		actor := actors.GetActor(topic[len(prefix) : len(topic)-len(postfix)])
+		if actor == nil {
+			logger.Error("Unknown actor", topic)
+			return
+		}
+
+		command, err := commands.Parse(payload)
+		if err != nil {
+			logger.Error("Failed parsing command", err)
+			return
+		}
+		actor.Apply(command)
+	})
 
 	//mqtt.Subscribe(cfg.Nuki.Source, OnMessage)
 	//mqtt.Subscribe(cfg.Nuki.Fingerprint, OnFingerprintButton)

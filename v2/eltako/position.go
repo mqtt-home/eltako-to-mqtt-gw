@@ -104,20 +104,22 @@ func (s *ShadingActor) WaitForPosition(waitGroup *sync.WaitGroup, position int, 
 		startTime := time.Now()
 
 		for {
-			logger.Info("Waiting for position", position)
-			if time.Since(startTime).Seconds() > float64(timeout) {
-				logger.Error("Timeout waiting for position")
-				return
-			}
-
 			currentPosition, err := s.GetPosition()
 			if err != nil {
 				logger.Error("Failed to get position", err)
 				return
 			}
 			if currentPosition == position {
+				logger.Info(fmt.Sprintf("Position %d reached", position))
 				return
 			}
+
+			logger.Info(fmt.Sprintf("Waiting for position %d (current: %d)", position, currentPosition))
+			if time.Since(startTime).Seconds() > float64(timeout) {
+				logger.Error("Timeout waiting for position")
+				return
+			}
+
 			time.Sleep(500 * time.Millisecond)
 		}
 	}()
