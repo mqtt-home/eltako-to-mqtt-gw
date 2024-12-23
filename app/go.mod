@@ -3,8 +3,8 @@ module github.com/mqtt-home/eltako-to-mqtt-gw
 go 1.23.2
 
 require (
-	github.com/philipparndt/go-logger v1.0.0
-	github.com/philipparndt/mqtt-gateway v1.3.0
+	github.com/philipparndt/go-logger v1.3.1
+	github.com/philipparndt/mqtt-gateway v1.4.0
 )
 
 require (

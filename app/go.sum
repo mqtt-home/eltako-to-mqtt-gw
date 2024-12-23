@@ -4,8 +4,12 @@ github.com/gorilla/websocket v1.5.3 h1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aN
 github.com/gorilla/websocket v1.5.3/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
 github.com/philipparndt/go-logger v1.0.0 h1:5khKl1q8q6FH74S1wF5KPl6DvdZnRdPKqKbBPQDr9P4=
 github.com/philipparndt/go-logger v1.0.0/go.mod h1:4mWf8eNH82GhKl5byAFwXcux9WPNuaePaPaAFbgjHXg=
+github.com/philipparndt/go-logger v1.3.1 h1:mgq0hBBvsJxsKAAzhWHPiqp+h6WU6zxP5fStPhA4xh0=
+github.com/philipparndt/go-logger v1.3.1/go.mod h1:TxU7uhiBXVaypDkYrBIEW8jESwmO0LeJBK0Lfrrb1Jk=
 github.com/philipparndt/mqtt-gateway v1.3.0 h1:QeJ0XIEnlzH4Qm7vqAQN3WTrI45UcPxlcQFcTrCXvn8=
 github.com/philipparndt/mqtt-gateway v1.3.0/go.mod h1:N6LC57xFs/u41Xc5csPHTACm/00GyOyMgIC+oOqp32Y=
+github.com/philipparndt/mqtt-gateway v1.4.0 h1:xsVqdqKGxeezEXNTTn06l5/a9Ath9KYdtnFQSS0+jmg=
+github.com/philipparndt/mqtt-gateway v1.4.0/go.mod h1:VAI2GOAhvnPeQnkx5alePhF85uAOglq4bJY0rTtRtKA=
 golang.org/x/net v0.30.0 h1:AcW1SDZMkb8IpzCdQUaIq2sP4sZ4zw+55h6ynffypl4=
 golang.org/x/net v0.30.0/go.mod h1:2wGyMJ5iFasEhkwi13ChkO/t1ECNC4X4eBKkVFyYFlU=
 golang.org/x/sync v0.8.0 h1:3NFvSEYkUoMifnESzZl15y791HH1qU2xm6eCJU5ZPXQ=
