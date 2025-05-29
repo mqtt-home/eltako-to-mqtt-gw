@@ -34,7 +34,7 @@ func startActors(cfg config.Eltako) *eltako.ActorRegistry {
 }
 
 func startActor(device *config.Device, pollingInterval int, wg *sync.WaitGroup) *eltako.ShadingActor {
-	logger.Info(fmt.Sprintf("Initializing %s", device.String()))
+	logger.Info(fmt.Sprintf("Initializing actor %s", device.Name), device.Ip)
 	actor := eltako.NewShadingActor(*device)
 	err := actor.Start(wg, pollingInterval)
 	if err != nil {

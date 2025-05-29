@@ -19,10 +19,10 @@ func (s *ShadingActor) schedulePolling(wg *sync.WaitGroup, pollingInterval int) 
 		if err != nil {
 			errorCtr++
 			if errorCtr >= 5 {
-				logger.Error("PANIC: Failed to poll position", err)
-				panic(err)
+				logger.Panic("Failed to poll position", err)
 			}
 		} else {
+			logger.Debug("Polled position", s.Name, position)
 			errorCtr = 0
 			mqtt.PublishJSON(s.DisplayName(), PositionMessage{position})
 			time.Sleep(interval)
@@ -32,7 +32,7 @@ func (s *ShadingActor) schedulePolling(wg *sync.WaitGroup, pollingInterval int) 
 
 func (s *ShadingActor) scheduleUpdateToken(wg *sync.WaitGroup) {
 	interval := time.Duration(60) * time.Minute
-	logger.Info(fmt.Sprintf("Scheduling token update of %s with interval %s", s, interval))
+	logger.Info(fmt.Sprintf("Scheduling token update of %s with interval %s", s.Name, interval))
 	wg.Done()
 	for {
 		logger.Debug("Updating token")
