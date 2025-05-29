@@ -99,11 +99,9 @@ func startDiscovery(cfg config.Config) {
 				logger.Info("Actor updated", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
 				// currently not supported
 			} else if event.Type == "deleted" {
-				logger.Info("Actor deleted", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
-				panic("Actor deletion currently not supported")
+				logger.Panic("Actor deleted (not supported)", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
 			} else {
-				logger.Error("Unknown event type", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
-				panic("Unknown event type")
+				logger.Panic("Unknown event type", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
 			}
 
 		}
