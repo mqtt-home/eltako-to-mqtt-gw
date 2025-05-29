@@ -64,25 +64,19 @@ func subscribeToCommands(cfg config.Config, actors *eltako.ActorRegistry) {
 	})
 }
 
-var actors []*config.Device
-
-func main() {
-	if len(os.Args) < 2 {
-		logger.Error("No config file specified")
-		os.Exit(1)
+func startDiscovery(cfg config.Config) {
+	foundSerial := false
+	for _, device := range cfg.Eltako.Devices {
+		if device.Serial != "" {
+			foundSerial = true
+			break
+		}
 	}
 
-	configFile := os.Args[1]
-	logger.Info("Config file", configFile)
-	err := error(nil)
-
-	cfg, err := config.LoadConfig(configFile)
-	if err != nil {
-		logger.Error("Failed loading config", err)
+	if !foundSerial {
+		logger.Info("Zeroconf not started, as no serial number is specified in the configuration")
 		return
 	}
-
-	logger.SetLevel(cfg.LogLevel)
 
 	actorUpdates := make(chan discovery.ActorEvent, 1)
 	d := discovery.New(actorUpdates)
@@ -114,6 +108,28 @@ func main() {
 
 		}
 	}()
+
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		logger.Error("No config file specified")
+		os.Exit(1)
+	}
+
+	configFile := os.Args[1]
+	logger.Info("Config file", configFile)
+	err := error(nil)
+
+	cfg, err := config.LoadConfig(configFile)
+	if err != nil {
+		logger.Error("Failed loading config", err)
+		return
+	}
+
+	logger.SetLevel(cfg.LogLevel)
+
+	startDiscovery(cfg)
 
 	mqtt.Start(cfg.MQTT, "eltako_mqtt")
 
