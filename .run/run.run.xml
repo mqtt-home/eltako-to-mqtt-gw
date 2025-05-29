@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="run" type="GoApplicationRunConfiguration" factoryName="Go Application">
     <module name="miele-to-mqtt-gw" />
-    <working_directory value="$PROJECT_DIR$/v2" />
+    <working_directory value="$PROJECT_DIR$/app" />
     <parameters value="../production/config/config.json" />
     <kind value="PACKAGE" />
     <package value="github.com/mqtt-home/eltako-to-mqtt-gw" />

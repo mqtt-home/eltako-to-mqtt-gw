@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/commands"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
+	"github.com/mqtt-home/eltako-to-mqtt-gw/discovery"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/eltako"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
@@ -16,20 +17,31 @@ import (
 func startActors(cfg config.Eltako) *eltako.ActorRegistry {
 	registry := eltako.NewActorRegistry()
 
-	wg := sync.WaitGroup{}
+	wg := &sync.WaitGroup{}
 	for _, device := range cfg.Devices {
-		logger.Info(fmt.Sprintf("Initializing %s", device.String()))
-		actor := eltako.NewShadingActor(device)
-		err := actor.Start(&wg, cfg)
-		if err != nil {
-			panic(err)
+		if device.Ip == "" {
+			logger.Info("Skipping actor, as IP is not defined", device.Name, device.Serial)
+			continue
 		}
+
+		actor := startActor(&device, cfg.PollingInterval, wg)
 
 		registry.AddActor(actor)
 	}
 	wg.Wait()
 
 	return registry
+}
+
+func startActor(device *config.Device, pollingInterval int, wg *sync.WaitGroup) *eltako.ShadingActor {
+	logger.Info(fmt.Sprintf("Initializing %s", device.String()))
+	actor := eltako.NewShadingActor(*device)
+	err := actor.Start(wg, pollingInterval)
+	if err != nil {
+		panic(err)
+	}
+
+	return actor
 }
 
 func subscribeToCommands(cfg config.Config, actors *eltako.ActorRegistry) {
@@ -52,6 +64,8 @@ func subscribeToCommands(cfg config.Config, actors *eltako.ActorRegistry) {
 	})
 }
 
+var actors []*config.Device
+
 func main() {
 	if len(os.Args) < 2 {
 		logger.Error("No config file specified")
@@ -69,6 +83,38 @@ func main() {
 	}
 
 	logger.SetLevel(cfg.LogLevel)
+
+	actorUpdates := make(chan discovery.ActorEvent, 1)
+	d := discovery.New(actorUpdates)
+	d.Start()
+
+	go func() {
+		for event := range actorUpdates {
+			a := event.Actor
+			if event.Type == "added" {
+				d := cfg.Eltako.GetBySN(a.SN)
+				if d == nil {
+					logger.Warn("Cannot register actor, no actor configured with Serial:", a.SN, a)
+				} else {
+					d.Ip = a.Addr
+					wg := &sync.WaitGroup{}
+					startActor(d, cfg.Eltako.PollingInterval, wg)
+					wg.Wait()
+				}
+			} else if event.Type == "updated" {
+				logger.Info("Actor updated", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
+				// currently not supported
+			} else if event.Type == "deleted" {
+				logger.Info("Actor deleted", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
+				panic("Actor deletion currently not supported")
+			} else {
+				logger.Error("Unknown event type", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
+				panic("Unknown event type")
+			}
+
+		}
+	}()
+
 	mqtt.Start(cfg.MQTT, "eltako_mqtt")
 
 	actors := startActors(cfg.Eltako)

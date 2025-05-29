@@ -20,7 +20,8 @@ type BlindsConfig struct {
 }
 
 type Device struct {
-	Ip           string       `json:"ip"`
+	Ip           string       `json:"ip,omitempty"`
+	Serial       string       `json:"serial,omitempty"`
 	Username     string       `json:"username"`
 	Password     string       `json:"password"`
 	Name         string       `json:"name"`
@@ -60,4 +61,14 @@ func LoadConfig(file string) (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func (c *Eltako) GetBySN(sn string) *Device {
+	for _, actor := range c.Devices {
+		if actor.Serial == sn {
+			return &actor
+		}
+	}
+
+	return nil
 }
