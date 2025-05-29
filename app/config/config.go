@@ -64,9 +64,9 @@ func LoadConfig(file string) (Config, error) {
 }
 
 func (c *Eltako) GetBySN(sn string) *Device {
-	for _, actor := range c.Devices {
-		if actor.Serial == sn {
-			return &actor
+	for i := range c.Devices {
+		if c.Devices[i].Serial == sn {
+			return &c.Devices[i]
 		}
 	}
 
