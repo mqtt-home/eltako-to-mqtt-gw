@@ -17,6 +17,7 @@ type ShadingActor struct {
 	Devices []Device
 	Name    string
 	IP      string
+	Serial  string
 	Config  config.BlindsConfig
 }
 
@@ -27,6 +28,7 @@ func NewShadingActor(device config.Device) *ShadingActor {
 		client: client,
 		Name:   device.Name,
 		IP:     device.Ip,
+		Serial: device.Serial,
 		Config: device.BlindsConfig,
 	}
 	err := actor.init()
@@ -140,7 +142,7 @@ func (s *ShadingActor) String() string {
 	return fmt.Sprintf("ShadingActor{name: %s; ip: %s}", s.Name, s.IP)
 }
 
-func (s *ShadingActor) Start(wg *sync.WaitGroup, cfg config.Eltako) error {
+func (s *ShadingActor) Start(wg *sync.WaitGroup, pollingInterval int) error {
 	wg.Add(2)
 	err := s.UpdateToken()
 	if err != nil {
@@ -150,8 +152,8 @@ func (s *ShadingActor) Start(wg *sync.WaitGroup, cfg config.Eltako) error {
 
 	go s.scheduleUpdateToken(wg)
 
-	if cfg.PollingInterval > 0 {
-		go s.schedulePolling(wg, cfg.PollingInterval)
+	if pollingInterval > 0 {
+		go s.schedulePolling(wg, pollingInterval)
 	} else {
 		logger.Info(fmt.Sprintf("Polling disabled for %s", s))
 	}

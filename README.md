@@ -82,6 +82,9 @@ This will move the position to 50% and then tilt the blinds.
 
 Example configuration:
 
+- use IP or serial number
+- when using the serial number, the IP is determined using Zeroconf 
+
 ```json
 {
   "mqtt": {
@@ -94,6 +97,7 @@ Example configuration:
     "devices": [
       {
         "ip": "192.168.1.15",
+        "serial": "abcdef",
         "username": "admin",
         "password": "123456789",
         "name": "living-room",
