@@ -23,7 +23,7 @@ dockers:
     use: buildx
     goos: linux
     goarch: amd64
-    skip_push: true
+    skip_push: false
 
   - image_templates:
       - "pharndt/eltakomqtt:{{ .Tag }}-arm64"
