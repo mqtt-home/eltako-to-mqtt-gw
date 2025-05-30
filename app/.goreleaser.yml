@@ -54,4 +54,36 @@ docker_manifests:
       - pharndt/eltakomqtt:{{ .Tag }}-arm64
 
 release:
-  disable: true
+  disable: false
+  # Mode to release in. Valid options are:
+  #   - auto: Auto detect the mode based on the git tag
+  #   - keep-existing: Just upload the artifacts and keep the existing release
+  #   - replace: Replace the existing release
+  mode: replace
+  draft: false
+  prerelease: auto
+  make_latest: true
+  # You can add extra pre-existing files to the release.
+  # The filename on the release will be the last part of the path (base).
+  extra_files:
+    - glob: ../config-example.json
+  # Release notes generation configuration.
+  # This will create a .goreleaser.md file which you can then customize and
+  # use for future releases
+  notes:
+    # Configure how the ChangeLog is generated.
+    # https://goreleaser.com/customization/release/#creating-a-custom-release-notes
+    #
+    # Valid options are:
+    # - default: Auto-generates the release notes with commits, contributors, and template processing
+    # - keep-existing: Just upload the artifacts and keep the existing release notes
+    group: milestone
+    use: github-native
+    filters:
+      exclude:
+        - '^docs:'
+        - '^test:'
+        - '^ci:'
+        - Merge pull request
+        - Merge branch
+        - go mod tidy
