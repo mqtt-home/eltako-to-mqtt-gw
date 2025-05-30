@@ -23,6 +23,9 @@ dockers:
     use: buildx
     goos: linux
     goarch: amd64
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--build-arg=BINARY=eltako-to-mqtt-gw_linux_amd64_v1"
     skip_push: false
 
   - image_templates:
@@ -31,6 +34,9 @@ dockers:
     use: buildx
     goos: linux
     goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--build-arg=BINARY=eltako-to-mqtt-gw_linux_arm64"
     skip_push: false
 
 docker_manifests:
