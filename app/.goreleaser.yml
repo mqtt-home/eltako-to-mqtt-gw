@@ -1,0 +1,50 @@
+project_name: eltako-to-mqtt-gw
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: eltako-to-mqtt-gw
+    main: ./main.go
+    binary: eltako-to-mqtt-gw
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+
+dockers:
+  - image_templates:
+      - "pharndt/eltakomqtt:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: amd64
+    skip_push: true
+
+  - image_templates:
+      - "pharndt/eltakomqtt:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    goos: linux
+    goarch: arm64
+    skip_push: false
+
+docker_manifests:
+  - id: tag
+    name_template: "pharndt/eltakomqtt:{{ .Tag }}"
+    image_templates:
+      - pharndt/eltakomqtt:{{ .Tag }}-amd64
+      - pharndt/eltakomqtt:{{ .Tag }}-arm64
+
+  - id: latest
+    name_template: "pharndt/eltakomqtt:latest"
+    image_templates:
+      - pharndt/eltakomqtt:{{ .Tag }}-amd64
+      - pharndt/eltakomqtt:{{ .Tag }}-arm64
+
+release:
+  disable: true

@@ -1,26 +1,6 @@
-# Build the application from source
-FROM golang:1.24 AS build-stage
+# syntax=docker/dockerfile:1.4
+FROM gcr.io/distroless/static-debian12
 
-WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . ./
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /eltako-to-mqtt-gw
-
-# Run the tests in the container
-FROM build-stage AS run-test-stage
-RUN go test -v ./...
-
-# Deploy the application binary into a lean image
-FROM gcr.io/distroless/base-debian11 AS build-release-stage
-
-WORKDIR /
-
-COPY --from=build-stage /eltako-to-mqtt-gw /eltako-to-mqtt-gw
-
-USER nonroot:nonroot
+COPY eltako-to-mqtt-gw /eltako-to-mqtt-gw
 
 ENTRYPOINT ["/eltako-to-mqtt-gw", "/var/lib/eltako-to-mqtt-gw/config.json"]
