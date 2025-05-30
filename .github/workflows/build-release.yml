@@ -1,6 +1,9 @@
-name: Build release
+name: GoReleaser
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       releaseType:
@@ -12,36 +15,38 @@ on:
           - minor
           - major
 
+permissions:
+  contents: write
+
 jobs:
-  build:
+  goreleaser:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: philipparndt/get-release-number@v3
         id: next
+        if: github.event_name == 'workflow_dispatch'
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           releaseType: ${{ github.event.inputs.releaseType }}
 
-      - uses: actions/setup-go@v5
+      - name: Create tag if workflow_dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a v${{ steps.next.outputs.version }} -m "Release v${{ steps.next.outputs.version }}"
+          git push origin v${{ steps.next.outputs.version }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version: '1.24.3'
-
-      - name: Build
-        working-directory: app
-        run: |
-          go build .
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+          check-latest: true
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -49,27 +54,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build docker container and push
-        id: docker_build
-        uses: docker/build-push-action@v6
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+          workdir: ./app
         env:
-          RELEASE_VERSION: ${{ steps.next.outputs.version }}
-        with:
-          context: ./app
-          file: ./app/Dockerfile
-          platforms: linux/amd64,linux/arm/v7,linux/arm64
-          push: true
-          tags: |
-            pharndt/eltakomqtt:latest
-            pharndt/eltakomqtt:${{env.RELEASE_VERSION}}
-
-      - uses: ncipollo/release-action@v1
-        with:
-          name: ${{ steps.next.outputs.version }}
-          tag: ${{ steps.next.outputs.version }}
-          body: |
-            Docker tag: `pharndt/eltakomqtt:${{ steps.next.outputs.version }}`
-
-            Changes in this Release
-              - Dependency update
-              - ...
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
