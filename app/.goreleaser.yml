@@ -1,4 +1,5 @@
 project_name: eltako-to-mqtt-gw
+version: 2
 
 before:
   hooks:
