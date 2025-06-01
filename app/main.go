@@ -14,8 +14,7 @@ import (
 	"syscall"
 )
 
-func startActors(cfg config.Eltako) *eltako.ActorRegistry {
-	registry := eltako.NewActorRegistry()
+func startActors(cfg config.Eltako) {
 
 	wg := &sync.WaitGroup{}
 	for _, device := range cfg.Devices {
@@ -24,13 +23,9 @@ func startActors(cfg config.Eltako) *eltako.ActorRegistry {
 			continue
 		}
 
-		actor := startActor(&device, cfg.PollingInterval, wg)
-
-		registry.AddActor(actor)
+		startActor(&device, cfg.PollingInterval, wg)
 	}
 	wg.Wait()
-
-	return registry
 }
 
 func startActor(device *config.Device, pollingInterval int, wg *sync.WaitGroup) *eltako.ShadingActor {
@@ -40,7 +35,7 @@ func startActor(device *config.Device, pollingInterval int, wg *sync.WaitGroup) 
 	if err != nil {
 		panic(err)
 	}
-
+	registry.AddActor(actor)
 	return actor
 }
 
@@ -48,7 +43,7 @@ func subscribeToCommands(cfg config.Config, actors *eltako.ActorRegistry) {
 	prefix := cfg.MQTT.Topic + "/"
 	postfix := "/set"
 	mqtt.Subscribe(prefix+"+"+postfix, func(topic string, payload []byte) {
-		logger.Info("Received message", topic, string(payload))
+		logger.Debug("Received message", topic, string(payload))
 		actor := actors.GetActor(topic[len(prefix) : len(topic)-len(postfix)])
 		if actor == nil {
 			logger.Error("Unknown actor", topic)
@@ -96,10 +91,10 @@ func startDiscovery(cfg config.Config) {
 					wg.Wait()
 				}
 			} else if event.Type == "updated" {
-				logger.Info("Actor updated", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
+				logger.Warn("Actor updated (not supported)", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
 				// currently not supported
-			} else if event.Type == "deleted" {
-				logger.Panic("Actor deleted (not supported)", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
+			} else if event.Type == "removed" {
+				logger.Warn("Actor removed (not supported)", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
 			} else {
 				logger.Panic("Unknown event type", event.Type, a.Instance, a.Addr, a.Port, a.PN, a.SN, a.MD)
 			}
@@ -108,6 +103,8 @@ func startDiscovery(cfg config.Config) {
 	}()
 
 }
+
+var registry = eltako.NewActorRegistry()
 
 func main() {
 	if len(os.Args) < 2 {
@@ -131,8 +128,8 @@ func main() {
 
 	mqtt.Start(cfg.MQTT, "eltako_mqtt")
 
-	actors := startActors(cfg.Eltako)
-	subscribeToCommands(cfg, actors)
+	startActors(cfg.Eltako)
+	subscribeToCommands(cfg, registry)
 
 	logger.Info("Application is now ready. Press Ctrl+C to quit.")
 
