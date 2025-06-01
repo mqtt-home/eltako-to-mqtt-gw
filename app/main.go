@@ -55,7 +55,7 @@ func subscribeToCommands(cfg config.Config, actors *eltako.ActorRegistry) {
 			logger.Error("Failed parsing command", err)
 			return
 		}
-		actor.Apply(command)
+		go actor.Apply(command)
 	})
 }
 
