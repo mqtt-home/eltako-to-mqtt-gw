@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -22,7 +23,7 @@ func (s *ShadingActor) schedulePolling(wg *sync.WaitGroup, pollingInterval int) 
 				logger.Panic("Failed to poll position", err)
 			}
 		} else {
-			logger.Debug("Polled position", s.Name, position)
+			logger.Debug("Polled position", s.Name, strconv.Itoa(position)+"%")
 			errorCtr = 0
 			mqtt.PublishJSON(s.DisplayName(), PositionMessage{position})
 			time.Sleep(interval)
