@@ -23,6 +23,7 @@ func startActors(cfg config.Eltako) {
 			continue
 		} else if device.Ip == "" {
 			logger.Info("Skipping actor because IP is not defined; it will be initialized later through Zeroconf", device.Name, device.Serial)
+			continue
 		}
 
 		startActor(&device, cfg.PollingInterval, wg)
