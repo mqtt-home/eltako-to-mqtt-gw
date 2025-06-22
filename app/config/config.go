@@ -52,7 +52,7 @@ func LoadConfig(file string) (Config, error) {
 	// Unmarshal the JSON data into the Config object
 	err = json.Unmarshal(data, &cfg)
 	if err != nil {
-		logger.Error("Unmarshalling JSON:", err)
+		logger.Error("Unmarshaling JSON:", err)
 		return Config{}, err
 	}
 
