@@ -12,13 +12,17 @@ import (
 )
 
 type ShadingActor struct {
-	device  config.Device
-	client  *HTTPClient
-	Devices []Device
-	Name    string
-	IP      string
-	Serial  string
-	Config  config.BlindsConfig
+	device       config.Device
+	client       *HTTPClient
+	Devices      []Device
+	Name         string
+	IP           string
+	Serial       string
+	Config       config.BlindsConfig
+	Tilted       bool
+	TiltPosition int
+	Position     int
+	mu           sync.Mutex
 }
 
 func NewShadingActor(device config.Device) *ShadingActor {
@@ -30,6 +34,7 @@ func NewShadingActor(device config.Device) *ShadingActor {
 		IP:     device.Ip,
 		Serial: device.Serial,
 		Config: device.BlindsConfig,
+		Tilted: false,
 	}
 	err := actor.init()
 	if err != nil {

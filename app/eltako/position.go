@@ -27,6 +27,10 @@ func (s *ShadingActor) getPosition() (int, error) {
 		return 0, err
 	}
 
+	s.mu.Lock()
+	oldPosition := s.Position
+	s.mu.Unlock()
+
 	resp, err := s.client.Get("/devices/" + device.DeviceGuid + "/infos/currentPosition")
 	if err != nil {
 		return 0, err
@@ -49,7 +53,16 @@ func (s *ShadingActor) getPosition() (int, error) {
 		return 0, fmt.Errorf("position not found in response")
 	}
 
-	return int(position), nil
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.Position = int(position)
+
+	if s.Position != oldPosition {
+		s.Tilted = false
+	}
+
+	return s.Position, nil
 }
 
 func (s *ShadingActor) SetPosition(position int) (bool, error) {
@@ -76,6 +89,10 @@ func (s *ShadingActor) setPosition(position int) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	s.mu.Lock()
+	s.Tilted = false
+	s.mu.Unlock()
 
 	resp, err := s.client.Put("/devices/"+device.DeviceGuid+"/functions/targetPosition", bytes.NewReader(body))
 	if err != nil {
