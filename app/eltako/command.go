@@ -22,6 +22,15 @@ func (s *ShadingActor) Apply(command commands.LLCommand) {
 }
 
 func (s *ShadingActor) Tilt(position int) {
+	s.mu.Lock()
+	if s.Tilted && s.TiltPosition == position {
+		logger.Info("Ignoring tilt command, already tilted correctly", s)
+		s.mu.Unlock()
+		return
+	}
+
+	s.mu.Unlock()
+
 	wg := sync.WaitGroup{}
 
 	startPosition, err := s.getPosition()
@@ -49,4 +58,10 @@ func (s *ShadingActor) Tilt(position int) {
 		logger.Error("Tilt failed; error setting tilt position", err)
 		return
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.Tilted = true
+	s.TiltPosition = position
 }
