@@ -11,7 +11,13 @@ import (
 type Config struct {
 	MQTT     config.MQTTConfig `json:"mqtt"`
 	Eltako   Eltako            `json:"eltako"`
+	Web      WebConfig         `json:"web"`
 	LogLevel string            `json:"loglevel,omitempty"`
+}
+
+type WebConfig struct {
+	Enabled bool `json:"enabled"`
+	Port    int  `json:"port"`
 }
 
 type BlindsConfig struct {

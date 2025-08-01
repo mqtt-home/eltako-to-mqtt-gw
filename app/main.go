@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mqtt-home/eltako-to-mqtt-gw/web"
 	"os"
 	"os/signal"
 	"sync"
@@ -11,7 +12,6 @@ import (
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/discovery"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/eltako"
-	"github.com/mqtt-home/eltako-to-mqtt-gw/web"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
 )
@@ -137,13 +137,18 @@ func main() {
 	subscribeToCommands(cfg, registry)
 
 	// Start web server
-	webServer := web.NewWebServer(registry)
-	go func() {
-		err := webServer.Start(8080)
-		if err != nil {
-			logger.Error("Failed to start web server", err)
-		}
-	}()
+	if !cfg.Web.Enabled {
+		logger.Info("Web interface is disabled in the configuration")
+	} else {
+		logger.Info("Web interface enabled, starting web server")
+		webServer := web.NewWebServer(registry)
+		go func() {
+			err := webServer.Start(cfg.Web.Port)
+			if err != nil {
+				logger.Error("Failed to start web server", err)
+			}
+		}()
+	}
 
 	logger.Info("Application is now ready. Web interface available at http://localhost:8080. Press Ctrl+C to quit.")
 
