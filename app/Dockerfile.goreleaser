@@ -1,0 +1,17 @@
+# syntax=docker/dockerfile:1.17
+
+# Final stage - only for the binary
+FROM gcr.io/distroless/static:nonroot
+
+WORKDIR /
+
+# Copy the pre-built binary from GoReleaser
+COPY eltako-to-mqtt-gw /eltako-to-mqtt-gw
+
+# Copy the frontend build files
+COPY web/dist/ /web/dist/
+
+# Use non-root user (distroless already provides this)
+USER nonroot:nonroot
+
+ENTRYPOINT ["/eltako-to-mqtt-gw", "/var/lib/eltako-to-mqtt-gw/config.json"]

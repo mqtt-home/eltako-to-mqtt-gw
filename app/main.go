@@ -2,6 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+
 	"github.com/mqtt-home/eltako-to-mqtt-gw/commands"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/discovery"
@@ -9,10 +14,6 @@ import (
 	"github.com/mqtt-home/eltako-to-mqtt-gw/web"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
 )
 
 func startActors(cfg config.Eltako) {

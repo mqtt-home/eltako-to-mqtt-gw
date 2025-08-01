@@ -3,14 +3,15 @@ package web
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/commands"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/eltako"
 	"github.com/philipparndt/go-logger"
-	"net/http"
-	"strconv"
 )
 
 type WebServer struct {
@@ -48,7 +49,7 @@ func NewWebServer(registry *eltako.ActorRegistry) *WebServer {
 func (ws *WebServer) setupRoutes() {
 	ws.router.Use(middleware.Logger)
 	ws.router.Use(middleware.Recoverer)
-	
+
 	// CORS configuration
 	ws.router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -75,7 +76,7 @@ func (ws *WebServer) setupRoutes() {
 
 func (ws *WebServer) getAllActors(w http.ResponseWriter, r *http.Request) {
 	var actors []ActorStatus
-	
+
 	for _, actor := range ws.registry.Actors {
 		// Get current position
 		position, err := actor.GetPosition()
@@ -83,7 +84,7 @@ func (ws *WebServer) getAllActors(w http.ResponseWriter, r *http.Request) {
 			logger.Error("Failed to get position for actor", actor.Name, err)
 			position = actor.Position // fallback to cached position
 		}
-		
+
 		status := ActorStatus{
 			Name:         actor.Name,
 			DisplayName:  actor.DisplayName(),
@@ -95,7 +96,7 @@ func (ws *WebServer) getAllActors(w http.ResponseWriter, r *http.Request) {
 		}
 		actors = append(actors, status)
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(actors)
 }
@@ -103,19 +104,19 @@ func (ws *WebServer) getAllActors(w http.ResponseWriter, r *http.Request) {
 func (ws *WebServer) getActor(w http.ResponseWriter, r *http.Request) {
 	actorName := chi.URLParam(r, "actorName")
 	actor := ws.registry.GetActor(actorName)
-	
+
 	if actor == nil {
 		http.Error(w, fmt.Sprintf("Actor '%s' not found", actorName), http.StatusNotFound)
 		return
 	}
-	
+
 	// Get current position
 	position, err := actor.GetPosition()
 	if err != nil {
 		logger.Error("Failed to get position for actor", actor.Name, err)
 		position = actor.Position // fallback to cached position
 	}
-	
+
 	status := ActorStatus{
 		Name:         actor.Name,
 		DisplayName:  actor.DisplayName(),
@@ -125,7 +126,7 @@ func (ws *WebServer) getActor(w http.ResponseWriter, r *http.Request) {
 		Tilted:       actor.Tilted,
 		TiltPosition: actor.TiltPosition,
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(status)
 }
@@ -133,30 +134,30 @@ func (ws *WebServer) getActor(w http.ResponseWriter, r *http.Request) {
 func (ws *WebServer) setActorPosition(w http.ResponseWriter, r *http.Request) {
 	actorName := chi.URLParam(r, "actorName")
 	actor := ws.registry.GetActor(actorName)
-	
+
 	if actor == nil {
 		http.Error(w, fmt.Sprintf("Actor '%s' not found", actorName), http.StatusNotFound)
 		return
 	}
-	
+
 	var req SetPositionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	
+
 	if req.Position < 0 || req.Position > 100 {
 		http.Error(w, "Position must be between 0 and 100", http.StatusBadRequest)
 		return
 	}
-	
+
 	command := commands.LLCommand{
 		Action:   commands.LLActionSet,
 		Position: req.Position,
 	}
-	
+
 	go actor.Apply(command)
-	
+
 	logger.Info(fmt.Sprintf("Set position for actor %s to %d", actorName, req.Position))
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
@@ -165,30 +166,30 @@ func (ws *WebServer) setActorPosition(w http.ResponseWriter, r *http.Request) {
 func (ws *WebServer) tiltActor(w http.ResponseWriter, r *http.Request) {
 	actorName := chi.URLParam(r, "actorName")
 	actor := ws.registry.GetActor(actorName)
-	
+
 	if actor == nil {
 		http.Error(w, fmt.Sprintf("Actor '%s' not found", actorName), http.StatusNotFound)
 		return
 	}
-	
+
 	var req TiltRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	
+
 	if req.Position < 0 || req.Position > 100 {
 		http.Error(w, "Position must be between 0 and 100", http.StatusBadRequest)
 		return
 	}
-	
+
 	command := commands.LLCommand{
 		Action:   commands.LLActionTilt,
 		Position: req.Position,
 	}
-	
+
 	go actor.Apply(command)
-	
+
 	logger.Info(fmt.Sprintf("Tilt actor %s to position %d", actorName, req.Position))
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
@@ -200,23 +201,23 @@ func (ws *WebServer) tiltAllActors(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-	
+
 	if req.Position < 0 || req.Position > 100 {
 		http.Error(w, "Position must be between 0 and 100", http.StatusBadRequest)
 		return
 	}
-	
+
 	command := commands.LLCommand{
 		Action:   commands.LLActionTilt,
 		Position: req.Position,
 	}
-	
+
 	tiltedCount := 0
 	for _, actor := range ws.registry.Actors {
 		go actor.Apply(command)
 		tiltedCount++
 	}
-	
+
 	logger.Info(fmt.Sprintf("Tilt all %d actors to position %d", tiltedCount, req.Position))
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{

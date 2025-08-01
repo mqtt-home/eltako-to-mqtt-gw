@@ -4,6 +4,7 @@ version: 2
 before:
   hooks:
     - go mod tidy
+    - sh -c "cd web && (command -v pnpm >/dev/null 2>&1 || npm install -g pnpm) && pnpm install --frozen-lockfile && pnpm run build"
 
 builds:
   - id: eltako-to-mqtt-gw
@@ -20,24 +21,26 @@ builds:
 dockers:
   - image_templates:
       - "pharndt/eltakomqtt:{{ .Tag }}-amd64"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
     goarch: amd64
     build_flag_templates:
       - "--platform=linux/amd64"
-      - "--build-arg=BINARY=eltako-to-mqtt-gw_linux_amd64_v1"
+    extra_files:
+      - web/dist/
     skip_push: false
 
   - image_templates:
       - "pharndt/eltakomqtt:{{ .Tag }}-arm64"
-    dockerfile: Dockerfile
+    dockerfile: Dockerfile.goreleaser
     use: buildx
     goos: linux
     goarch: arm64
     build_flag_templates:
       - "--platform=linux/arm64"
-      - "--build-arg=BINARY=eltako-to-mqtt-gw_linux_arm64"
+    extra_files:
+      - web/dist/
     skip_push: false
 
 docker_manifests:
