@@ -108,6 +108,9 @@ func (s *ShadingActor) setPosition(position int) (bool, error) {
 		return false, fmt.Errorf("failed to set position, status code: %d", resp.StatusCode)
 	}
 
+	s.Position = position
+	logger.Debug("Persisting position", s.Name, "pos", position)
+
 	return true, nil
 }
 
