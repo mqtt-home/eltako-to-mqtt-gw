@@ -2,11 +2,39 @@
 
 [![mqtt-smarthome](https://img.shields.io/badge/mqtt-smarthome-blue.svg)](https://github.com/mqtt-smarthome/mqtt-smarthome)
 
-Convert the Eltako Series 62-IP data to MQTT messages.
+Convert the Eltako Series 62-IP data to MQTT messages and provide a modern web interface for direct control.
+
+## Features
+
+- **MQTT Integration**: Publish/subscribe to MQTT topics for home automation
+- **Web Interface**: Modern React-based control panel for direct device management
+- **REST API**: HTTP endpoints for integration with other systems
+- **Zeroconf Discovery**: Automatic device discovery using mDNS/Bonjour
+- **Tilt Control**: Advanced blind tilting with configurable positions
 
 Some warning about these devices:
 - They are announced to come with Matter support, but they will never get an update to support it.
 - They do not support setting the position in a finer granularity than 1%, so tilt is only possible when the blinds are small enough that 1% is a small enough step.
+
+## Web Interface
+
+The application now includes a built-in web interface accessible at `http://localhost:8080` when running.
+
+### Features:
+- **Dashboard**: View all actors and their current status
+- **Individual Control**: Set position and tilt for each actor
+- **Global Controls**: Tilt all actors simultaneously
+- **Real-time Updates**: Status refreshes automatically
+- **Responsive Design**: Works on desktop, tablet, and mobile
+
+![Web Interface Screenshot](web-interface-screenshot.png)
+
+### API Endpoints:
+- `GET /api/actors` - List all actors
+- `GET /api/actors/{name}` - Get specific actor status
+- `POST /api/actors/{name}/position` - Set actor position
+- `POST /api/actors/{name}/tilt` - Tilt specific actor
+- `POST /api/actors/all/tilt` - Tilt all actors
 
 ## Devices
 
@@ -147,41 +175,54 @@ If you specify only the `serial` property for a device (and omit the `ip`), the 
 
 ### Build
 
-To build the project, run:
+To build the project with web interface:
 
 ```sh
 cd app
 make build
 ```
 
-This will build the binary in the `app` directory.
+This will build both the React frontend and Go backend.
 
 ### Run
 
-To run the gateway locally:
+To run the gateway with web interface:
 
 ```sh
 cd app
 make run
 ```
 
-### Docker
+The web interface will be available at http://localhost:8080
 
-To build and run the Docker image:
+### Development
+
+For development with hot-reload:
 
 ```sh
 cd app
-make docker-build
-make docker-run
+./dev.sh
 ```
 
-Or use the provided `docker-compose.yaml` in the `production` directory:
+This starts:
+- Backend API server on http://localhost:8080
+- Frontend dev server on http://localhost:5173 (with hot reload)
+
+### Docker
+
+To build and run the Docker image with web interface:
 
 ```sh
-cd production
-cp config/config-example.json config/config.json
-# Edit config/config.json as needed
-docker-compose up --build
+cd app
+make docker
+docker run -p 8080:8080 -v /path/to/config:/var/lib/eltako-to-mqtt-gw pharndt/eltako:latest
+```
+
+Or use the development docker-compose:
+
+```sh
+cd app
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
 ### Create a Release

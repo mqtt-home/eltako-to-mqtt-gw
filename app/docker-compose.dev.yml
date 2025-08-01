@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  eltako-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../production/config:/var/lib/eltako-to-mqtt-gw:ro
+    environment:
+      - TZ=Europe/Berlin
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/actors"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

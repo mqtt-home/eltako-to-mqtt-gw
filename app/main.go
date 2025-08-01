@@ -6,6 +6,7 @@ import (
 	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/discovery"
 	"github.com/mqtt-home/eltako-to-mqtt-gw/eltako"
+	"github.com/mqtt-home/eltako-to-mqtt-gw/web"
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"os"
@@ -134,7 +135,16 @@ func main() {
 	startActors(cfg.Eltako)
 	subscribeToCommands(cfg, registry)
 
-	logger.Info("Application is now ready. Press Ctrl+C to quit.")
+	// Start web server
+	webServer := web.NewWebServer(registry)
+	go func() {
+		err := webServer.Start(8080)
+		if err != nil {
+			logger.Error("Failed to start web server", err)
+		}
+	}()
+
+	logger.Info("Application is now ready. Web interface available at http://localhost:8080. Press Ctrl+C to quit.")
 
 	quitChannel := make(chan os.Signal, 1)
 	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)

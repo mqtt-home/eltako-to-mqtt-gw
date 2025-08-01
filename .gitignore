@@ -24,3 +24,5 @@ config-auth.json
 
 eltako-to-mqtt-gw
 dist/
+
+node_modules/
