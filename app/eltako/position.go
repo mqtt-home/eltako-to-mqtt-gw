@@ -59,6 +59,7 @@ func (s *ShadingActor) getPosition() (int, error) {
 	s.Position = int(position)
 
 	if s.Position != oldPosition {
+		logger.Debug("Tilted disabled as position changed", s.Name, "from", oldPosition, "to", s.Position)
 		s.Tilted = false
 	}
 
@@ -90,6 +91,7 @@ func (s *ShadingActor) setPosition(position int) (bool, error) {
 		return false, err
 	}
 
+	logger.Debug("Tilted disabled as position changed (setPosition)", s.Name, "from", position, "to", s.Position)
 	s.mu.Lock()
 	s.Tilted = false
 	s.mu.Unlock()

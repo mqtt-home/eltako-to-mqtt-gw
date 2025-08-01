@@ -27,6 +27,8 @@ func (s *ShadingActor) Tilt(position int) {
 		return
 	}
 
+	logger.Debug("Tilt command received", s, "to position", position)
+
 	wg := sync.WaitGroup{}
 
 	startPosition, err := s.getPosition()
@@ -60,4 +62,6 @@ func (s *ShadingActor) Tilt(position int) {
 
 	s.Tilted = true
 	s.TiltPosition = position
+	logger.Debug("Tilt command executed successfully", s, "to position", position, "with offset", offset)
+
 }
