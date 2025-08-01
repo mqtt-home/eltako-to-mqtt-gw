@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ActorStatus } from '@/types/actor';
 import { fetchActors, tiltAllActors } from '@/lib/api';
 import { ActorCard } from '@/components/ActorCard';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, Home } from 'lucide-react';
@@ -87,15 +88,18 @@ export function App() {
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={loadActors}
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button
+                variant="outline"
+                onClick={loadActors}
+                disabled={isLoading}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {actors.length > 1 && (
