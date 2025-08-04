@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActorStatus } from '@/types/actor';
 import { fetchActors, tiltAllActors } from '@/lib/api';
+import { useSSE } from '@/hooks/useSSE';
 import { ActorCard } from '@/components/ActorCard';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,25 @@ export function App() {
   const [actors, setActors] = useState<ActorStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use SSE for real-time updates
+  const { data: sseData, isConnected, error: sseError, reconnect } = useSSE('/api/events');
+
+  // Update actors when SSE data changes
+  useEffect(() => {
+    if (sseData.length > 0) {
+      setActors(sseData);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [sseData]);
+
+  // Handle SSE connection errors
+  useEffect(() => {
+    if (sseError) {
+      setError(sseError);
+    }
+  }, [sseError]);
 
   const loadActors = async () => {
     try {
@@ -26,17 +46,17 @@ export function App() {
     }
   };
 
+  // Fallback: load actors initially if SSE is not connected
   useEffect(() => {
-    loadActors();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(loadActors, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!isConnected && actors.length === 0) {
+      loadActors();
+    }
+  }, [isConnected, actors.length]);
 
   const handleTiltAll = async (position: number) => {
     try {
       await tiltAllActors(position);
-      setTimeout(loadActors, 500); // Refresh after a short delay
+      // SSE will automatically update the UI, no need to manually refresh
     } catch (error) {
       console.error('Failed to tilt all actors:', error);
       alert('Failed to tilt all actors. Please try again.');
@@ -90,15 +110,17 @@ export function App() {
             </div>
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              <Button
-                variant="outline"
-                onClick={loadActors}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+              {!isConnected && (
+                <Button
+                  variant="outline"
+                  onClick={reconnect}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Reconnect
+                </Button>
+              )}
             </div>
           </div>
 
@@ -154,7 +176,6 @@ export function App() {
               <ActorCard
                 key={actor.name}
                 actor={actor}
-                onRefresh={loadActors}
               />
             ))}
           </div>

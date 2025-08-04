@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ActorStatus } from '@/types/actor';
 import { setActorPosition, tiltActor } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,19 +8,24 @@ import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
 
 interface ActorCardProps {
   actor: ActorStatus;
-  onRefresh: () => void;
+  onRefresh?: () => void;
 }
 
 export function ActorCard({ actor, onRefresh }: ActorCardProps) {
   const [position, setPosition] = useState(actor.position);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Keep position in sync with actor prop
+  useEffect(() => {
+    setPosition(actor.position);
+  }, [actor.position]);
+
   const handlePositionChange = async (newPosition: number) => {
     setIsLoading(true);
     try {
       await setActorPosition(actor.name, newPosition);
       setPosition(newPosition);
-      setTimeout(onRefresh, 500); // Refresh after a short delay
+      // SSE will automatically update the UI, no need to manually refresh
     } catch (error) {
       console.error('Failed to set position:', error);
       alert('Failed to set position. Please try again.');
@@ -33,7 +38,7 @@ export function ActorCard({ actor, onRefresh }: ActorCardProps) {
     setIsLoading(true);
     try {
       await tiltActor(actor.name, tiltPosition);
-      setTimeout(onRefresh, 500); // Refresh after a short delay
+      // SSE will automatically update the UI, no need to manually refresh
     } catch (error) {
       console.error('Failed to tilt:', error);
       alert('Failed to tilt. Please try again.');
@@ -55,14 +60,16 @@ export function ActorCard({ actor, onRefresh }: ActorCardProps) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           {actor.displayName}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onRefresh}
-            disabled={isLoading}
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          {onRefresh && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onRefresh}
+              disabled={isLoading}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+          )}
         </CardTitle>
         <CardDescription>
           {actor.ip} {actor.serial && `(${actor.serial})`}
