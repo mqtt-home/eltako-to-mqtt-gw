@@ -55,5 +55,34 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Improve mobile scrolling performance */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: auto;
+  }
+}
+
+/* Mobile-friendly touch interactions */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Prevent zoom on touch inputs on iOS */
+  @media screen and (max-width: 768px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+  
+  /* Improve scrolling on mobile */
+  .scroll-area {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Better touch targets for mobile */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
