@@ -2,18 +2,30 @@ package eltako
 
 import (
 	"fmt"
-	"github.com/philipparndt/go-logger"
-	"github.com/philipparndt/mqtt-gateway/mqtt"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/philipparndt/go-logger"
+	"github.com/philipparndt/mqtt-gateway/mqtt"
 )
+
+// PositionChangeEvent is sent to the global channel when an actor's position changes
+// You can extend this struct with more fields if needed
+// e.g. Tilt, Serial, etc.
+type PositionChangeEvent struct {
+	ActorName string
+	Position  int
+}
+
+var PositionChangeChan = make(chan PositionChangeEvent, 100)
 
 func (s *ShadingActor) schedulePolling(wg *sync.WaitGroup, pollingInterval int) {
 	errorCtr := 0
 	interval := time.Duration(pollingInterval) * time.Millisecond
 	logger.Info(fmt.Sprintf("Starting polling of %s with interval %s", s, interval))
 	wg.Done()
+	lastPosition := s.Position
 	for {
 		position, err := s.getPosition()
 
@@ -25,7 +37,13 @@ func (s *ShadingActor) schedulePolling(wg *sync.WaitGroup, pollingInterval int) 
 		} else {
 			logger.Debug("Polled position", s.Name, strconv.Itoa(position)+"%")
 			errorCtr = 0
-			mqtt.PublishJSON(s.DisplayName(), PositionMessage{position})
+			if position != lastPosition {
+				lastPosition = position
+				s.Position = position
+				mqtt.PublishJSON(s.DisplayName(), PositionMessage{position})
+				// Send to global channel
+				PositionChangeChan <- PositionChangeEvent{ActorName: s.Name, Position: position}
+			}
 			time.Sleep(interval)
 		}
 	}

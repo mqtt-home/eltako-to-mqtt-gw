@@ -18,16 +18,16 @@ import (
 
 // SSE client connection
 type SSEClient struct {
-	ID       string
-	Channel  chan string
-	Request  *http.Request
-	Writer   http.ResponseWriter
+	ID      string
+	Channel chan string
+	Request *http.Request
+	Writer  http.ResponseWriter
 }
 
 type WebServer struct {
-	registry   *eltako.ActorRegistry
-	router     *chi.Mux
-	sseClients map[string]*SSEClient
+	registry      *eltako.ActorRegistry
+	router        *chi.Mux
+	sseClients    map[string]*SSEClient
 	sseClients_mu sync.RWMutex
 }
 
@@ -51,8 +51,8 @@ type SetPositionRequest struct {
 
 func NewWebServer(registry *eltako.ActorRegistry) *WebServer {
 	ws := &WebServer{
-		registry: registry,
-		router:   chi.NewRouter(),
+		registry:   registry,
+		router:     chi.NewRouter(),
 		sseClients: make(map[string]*SSEClient),
 	}
 	ws.setupRoutes()
@@ -176,13 +176,13 @@ func (ws *WebServer) setActorPosition(w http.ResponseWriter, r *http.Request) {
 	go actor.Apply(command)
 
 	logger.Info(fmt.Sprintf("Set position for actor %s to %d", actorName, req.Position))
-	
+
 	// Broadcast state change after a brief delay to allow the actor to update
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		ws.broadcastStateChange()
 	}()
-	
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
@@ -215,13 +215,13 @@ func (ws *WebServer) tiltActor(w http.ResponseWriter, r *http.Request) {
 	go actor.Apply(command)
 
 	logger.Info(fmt.Sprintf("Tilt actor %s to position %d", actorName, req.Position))
-	
+
 	// Broadcast state change after a brief delay to allow the actor to update
 	go func() {
 		time.Sleep(500 * time.Millisecond)
 		ws.broadcastStateChange()
 	}()
-	
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
@@ -250,13 +250,13 @@ func (ws *WebServer) tiltAllActors(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Info(fmt.Sprintf("Tilt all %d actors to position %d", tiltedCount, req.Position))
-	
+
 	// Broadcast state change after a brief delay to allow the actors to update
 	go func() {
 		time.Sleep(1 * time.Second)
 		ws.broadcastStateChange()
 	}()
-	
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "success",
@@ -292,7 +292,7 @@ func (ws *WebServer) handleSSE(w http.ResponseWriter, r *http.Request) {
 	actorsState := ws.getAllActorsState()
 	message, _ := json.Marshal(actorsState)
 	fmt.Fprintf(w, "data: %s\n\n", string(message))
-	
+
 	flusher, ok := w.(http.Flusher)
 	if ok {
 		flusher.Flush()
@@ -313,6 +313,14 @@ func (ws *WebServer) handleSSE(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		select {
+		case msg := <-eltako.PositionChangeChan:
+			logger.Debug("Received position change event", msg.ActorName, msg.Position)
+			actorsState := ws.getAllActorsState()
+			message, _ := json.Marshal(actorsState)
+			fmt.Fprintf(w, "data: %s\n\n", string(message))
+			if ok {
+				flusher.Flush()
+			}
 		case <-r.Context().Done():
 			return
 		case <-ticker.C:
@@ -353,7 +361,7 @@ func (ws *WebServer) broadcastStateChange() {
 		}
 	}
 	ws.sseClients_mu.RUnlock()
-	
+
 	if clientCount > 0 {
 		logger.Debug(fmt.Sprintf("Broadcasted state change to %d SSE clients", clientCount))
 	}

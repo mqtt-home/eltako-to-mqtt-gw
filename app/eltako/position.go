@@ -59,6 +59,10 @@ func (s *ShadingActor) getPosition() (int, error) {
 	s.Position = int(position)
 
 	if s.Position != oldPosition {
+		PositionChangeChan <- PositionChangeEvent{
+			ActorName: s.Name,
+			Position:  s.Position,
+		}
 		logger.Debug("Tilted disabled as position changed", s.Name, "from", oldPosition, "to", s.Position)
 		s.Tilted = false
 	}

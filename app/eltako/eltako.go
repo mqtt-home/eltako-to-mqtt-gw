@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
-	"github.com/philipparndt/go-logger"
 	"io"
 	"net/http"
 	"sync"
+
+	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
+	"github.com/philipparndt/go-logger"
 )
 
 type ShadingActor struct {
