@@ -145,7 +145,7 @@ export function App() {
 
   if (isLoading && actors.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto" />
           <p className="text-muted-foreground">Loading actors...</p>
@@ -156,8 +156,8 @@ export function App() {
 
   if (error && actors.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-md gradient-card shadow-lg">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-red-600">Error</CardTitle>
             <CardDescription>{error}</CardDescription>
@@ -173,12 +173,12 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <div className="container mx-auto p-4 sm:p-6">
         <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between mb-4 gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="p-2 gradient-primary rounded-lg shrink-0 shadow-lg">
+              <div className="p-2 bg-primary rounded-lg shrink-0">
                 <Home className="h-6 w-6 text-primary-foreground" />
               </div>
               <div className="min-w-0">
@@ -215,7 +215,7 @@ export function App() {
           </div>
 
           {actors.length > 1 && (
-            <Card className="mb-4 sm:mb-6 gradient-card shadow-lg">
+            <Card className="mb-4 sm:mb-6">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Global Controls</span>
@@ -269,7 +269,7 @@ export function App() {
         </div>
 
         {actors.length === 0 ? (
-          <Card className="gradient-card shadow-lg">
+          <Card>
             <CardContent className="p-12 text-center">
               <p className="text-muted-foreground">No actors found</p>
               <p className="text-sm text-muted-foreground mt-2">

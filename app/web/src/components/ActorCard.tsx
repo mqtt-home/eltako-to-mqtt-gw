@@ -140,7 +140,7 @@ export function ActorCard({ actor, onRefresh }: ActorCardProps) {
   };
 
   return (
-    <Card className="w-full max-w-md touch-manipulation gradient-card shadow-lg">
+    <Card className="w-full max-w-md touch-manipulation">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="truncate">{actor.displayName}</span>
