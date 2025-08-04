@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.17
 
 # Build stage for frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app/web
 
