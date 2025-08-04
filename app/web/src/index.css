@@ -54,7 +54,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    /* Modern gradient background */
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    min-height: 100vh;
     /* Improve mobile scrolling performance */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: auto;
@@ -65,6 +68,25 @@
 @layer utilities {
   .touch-manipulation {
     touch-action: manipulation;
+  }
+  
+  /* Modern gradient utilities */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  }
+  
+  .gradient-card {
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted) / 0.9) 100%);
+    border: 1px solid hsl(var(--border) / 0.8);
+    backdrop-filter: blur(10px);
+  }
+  
+  .gradient-subtle {
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.2) 100%);
+  }
+  
+  .gradient-border {
+    border-image: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%) 1;
   }
   
   /* Prevent zoom on touch inputs on iOS */
