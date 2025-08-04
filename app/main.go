@@ -5,6 +5,7 @@ import (
 	"github.com/mqtt-home/eltako-to-mqtt-gw/web"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -148,9 +149,8 @@ func main() {
 				logger.Error("Failed to start web server", err)
 			}
 		}()
+		logger.Info("Application is now ready. Web interface available at http://localhost:" + strconv.Itoa(cfg.Web.Port) + ". Press Ctrl+C to quit.")
 	}
-
-	logger.Info("Application is now ready. Web interface available at http://localhost:8080. Press Ctrl+C to quit.")
 
 	quitChannel := make(chan os.Signal, 1)
 	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
