@@ -1,9 +1,11 @@
 package eltako
 
 import (
-	"github.com/mqtt-home/eltako-to-mqtt-gw/commands"
-	"github.com/philipparndt/go-logger"
 	"sync"
+
+	"github.com/mqtt-home/eltako-to-mqtt-gw/commands"
+	"github.com/mqtt-home/eltako-to-mqtt-gw/config"
+	"github.com/philipparndt/go-logger"
 )
 
 func (s *ShadingActor) Apply(command commands.LLCommand) {
@@ -22,12 +24,11 @@ func (s *ShadingActor) Apply(command commands.LLCommand) {
 }
 
 func (s *ShadingActor) Tilt(position int) {
-	if s.Tilted && s.TiltPosition == position {
-		logger.Info("Ignoring tilt command, already tilted correctly", s)
+	logger.Debug("Tilt command received", s, "to position", position)
+	if config.Get().Eltako.GetOptimizeTilt() && s.Tilted && s.TiltPosition == position {
+		logger.Debug("Ignoring tilt command, already tilted correctly", s)
 		return
 	}
-
-	logger.Debug("Tilt command received", s, "to position", position)
 
 	wg := sync.WaitGroup{}
 

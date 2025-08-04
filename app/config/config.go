@@ -3,10 +3,13 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/philipparndt/go-logger"
 	"github.com/philipparndt/mqtt-gateway/config"
-	"os"
 )
+
+var cfg Config
 
 type Config struct {
 	MQTT     config.MQTTConfig `json:"mqtt"`
@@ -41,6 +44,7 @@ func (d *Device) String() string {
 type Eltako struct {
 	Devices         []Device `json:"devices"`
 	PollingInterval int      `json:"polling-interval"`
+	OptimizeTilt    *bool    `json:"optimizeTilt,omitempty"`
 }
 
 func LoadConfig(file string) (Config, error) {
@@ -52,9 +56,6 @@ func LoadConfig(file string) (Config, error) {
 
 	data = config.ReplaceEnvVariables(data)
 
-	// Create a Config object
-	var cfg Config
-
 	// Unmarshal the JSON data into the Config object
 	err = json.Unmarshal(data, &cfg)
 	if err != nil {
@@ -62,8 +63,15 @@ func LoadConfig(file string) (Config, error) {
 		return Config{}, err
 	}
 
+	// Set default values
 	if cfg.LogLevel == "" {
 		cfg.LogLevel = "info"
+	}
+
+	// Set default value for OptimizeTilt if not specified in config
+	if cfg.Eltako.OptimizeTilt == nil {
+		defaultOptimizeTilt := true
+		cfg.Eltako.OptimizeTilt = &defaultOptimizeTilt
 	}
 
 	return cfg, nil
@@ -77,4 +85,15 @@ func (c *Eltako) GetBySN(sn string) *Device {
 	}
 
 	return nil
+}
+
+func (e Eltako) GetOptimizeTilt() bool {
+	if e.OptimizeTilt == nil {
+		return true // default value
+	}
+	return *e.OptimizeTilt
+}
+
+func Get() Config {
+	return cfg
 }
