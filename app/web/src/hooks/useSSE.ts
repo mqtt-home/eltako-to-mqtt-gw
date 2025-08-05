@@ -42,10 +42,12 @@ export function useSSE(url: string): SSEHookReturn {
       eventSource.onmessage = (event) => {
         try {
           const actors = JSON.parse(event.data) as ActorStatus[];
+          console.log('Raw SSE data received:', event.data);
+          console.log('Parsed actors:', actors);
           setData(actors);
           console.log('Received SSE update:', actors.length, 'actors');
         } catch (err) {
-          console.error('Failed to parse SSE message:', err);
+          console.error('Failed to parse SSE message:', err, 'Raw data:', event.data);
           setError('Failed to parse server data');
         }
       };

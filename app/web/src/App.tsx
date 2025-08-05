@@ -28,12 +28,25 @@ export function App() {
 
   // Update actors when SSE data changes
   useEffect(() => {
-    if (sseData.length > 0 && !executingGlobalActionRef.current) {
+    if (sseData !== undefined && !executingGlobalActionRef.current) {
+      console.log('SSE data received:', sseData);
       setActors(sseData);
       setIsLoading(false);
       setError(null);
     }
   }, [sseData]);
+
+  // Handle SSE connection success - set loading to false after a short delay if connected but no data
+  useEffect(() => {
+    if (isConnected && isLoading) {
+      const timeout = setTimeout(() => {
+        if (isLoading) {
+          setIsLoading(false);
+        }
+      }, 2000); // Wait 2 seconds for initial data
+      return () => clearTimeout(timeout);
+    }
+  }, [isConnected, isLoading]);
 
   // Handle SSE connection errors
   useEffect(() => {
@@ -56,12 +69,12 @@ export function App() {
     }
   };
 
-  // Fallback: load actors initially if SSE is not connected
+  // Fallback: load actors initially if SSE is not connected or hasn't received data yet
   useEffect(() => {
-    if (!isConnected && actors.length === 0) {
+    if (!isConnected && isLoading) {
       loadActors();
     }
-  }, [isConnected, actors.length]);
+  }, [isConnected, isLoading]);
 
   // Cleanup global timeout on unmount
   useEffect(() => {
