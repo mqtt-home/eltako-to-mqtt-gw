@@ -34,13 +34,13 @@ func (s *ShadingActor) Tilt(position int) {
 
 	startPosition, err := s.getPosition()
 	if err != nil {
-		logger.Error("Tilt failed; error getting position", err)
+		logger.Error("Tilt failed; error getting position", s, err)
 		return
 	}
 
 	err = s.SetAndWaitForPosition(&wg, position, 60)
 	if err != nil {
-		logger.Error("Tilt failed; error setting position", err)
+		logger.Error("Tilt failed; error setting position", s, err)
 		return
 	}
 	wg.Wait()
@@ -54,7 +54,7 @@ func (s *ShadingActor) Tilt(position int) {
 
 	_, err = s.SetPosition(position + offset)
 	if err != nil {
-		logger.Error("Tilt failed; error setting tilt position", err)
+		logger.Error("Tilt failed; error setting tilt position", s, err)
 		return
 	}
 
