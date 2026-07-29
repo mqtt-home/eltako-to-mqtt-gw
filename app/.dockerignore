@@ -1,0 +1,9 @@
+# Never ship the host's install into the image: copying node_modules over the
+# one pnpm just created makes `pnpm run build` try to purge it, which fails
+# without a TTY. CI builds from a clean checkout and never hits this; a local
+# `docker build` does.
+web/node_modules
+web/dist
+web/*.tsbuildinfo
+
+build
