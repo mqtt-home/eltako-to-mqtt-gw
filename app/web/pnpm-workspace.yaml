@@ -1,0 +1,7 @@
+# pnpm 11 blocks dependency build scripts by default and fails the install with
+# ERR_PNPM_IGNORED_BUILDS; allow the two that actually need to run so the vite
+# build works. (Replaces the pre-v11 `onlyBuiltDependencies` list, which pnpm 11
+# silently ignores.)
+allowBuilds:
+  esbuild: true
+  "@tailwindcss/oxide": true

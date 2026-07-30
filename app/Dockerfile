@@ -6,10 +6,10 @@ FROM node:22-alpine AS frontend-builder
 WORKDIR /app/web
 
 # Copy package files
-COPY web/package.json web/pnpm-lock.yaml* ./
+COPY web/package.json web/pnpm-lock.yaml* web/pnpm-workspace.yaml ./
 
 # Install pnpm and dependencies
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN npm install -g pnpm@11.5.1 && pnpm install --frozen-lockfile
 
 # Copy source files and build
 COPY web/ .
